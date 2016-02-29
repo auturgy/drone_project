@@ -1,6 +1,24 @@
 #include "server_ctrl.hpp"
 #include <boost/thread/thread.hpp>
 
+
+// get the number of process on server 
+//////////////////////////////////////////////////////////////////
+std::unique_ptr<server_ctrl> server_ctrl::instance_;
+
+server_ctrl& server_ctrl::get(){
+
+	server_ctrl *p = instance_.get();
+	
+	if(!p) {
+		instance_.reset(new server_ctrl);
+		p = instance_.get();
+	}
+
+	return *p;
+}
+
+
 // get the number of process on server 
 //////////////////////////////////////////////////////////////////
 std::size_t server_ctrl::get_number_of_process() {
