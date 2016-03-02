@@ -1,6 +1,4 @@
 #include "server_ctrl.hpp"
-#include <boost/thread/thread.hpp>
-
 
 // get the number of process on server 
 //////////////////////////////////////////////////////////////////
@@ -38,6 +36,28 @@ std::size_t server_ctrl::get_number_of_process() {
 	return max_thread_cnt;
 
 } // end of get_number_of_process()
+
+
+// 
+//////////////////////////////////////////////////////////////////
+bool server_ctrl::init( 
+	const std::vector< boost::shared_ptr < session > >& sessions = std::vector< boost::shared_ptr < session > >(), 
+	const unsigned short max_num = 0 
+	){
+
+	if( max_num > 0 ) {
+
+		logger::info("To process instances inhereted from session class");
+
+	} else {
+
+		logger::info("Default session class is used to handle each connection");
+
+
+	}
+
+	return true;
+} // end of init()
 
 
 
