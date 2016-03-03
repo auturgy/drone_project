@@ -1,4 +1,6 @@
 #include "server_ctrl.hpp"
+#include "session.hpp"
+#include <boost/make_shared.hpp>
 
 // get the number of process on server 
 //////////////////////////////////////////////////////////////////
@@ -53,12 +55,45 @@ bool server_ctrl::init(
 
 		logger::info("Default session class is used to handle each connection");
 
-
+		for( int i = 0; i < MAX_SESSION_COUNT; ++i )
+		{
+			boost::shared_ptr<session> ss_ptr = boost::make_shared<session>(ios_, i);
+			session_list_.push_back(ss_ptr);
+			session_queue_.push_back(i);
+		}
 	}
 
 	return true;
 } // end of init()
 
+// allocate new session for incoming connection
+//////////////////////////////////////////////////////////////////
+boost::shared_ptr<session> server_ctrl::alloc_session() {
 
+	// update session manager 
+	unsigned short session_id = session_queue_.front();
+	session_queue_.pop_front();									// redundant 
+
+	// session statement must be SS_CLOSE 
+	assert(session_list_[session_id].get()->get_session_stat() == SS_CLOSE);
+
+	session_list_[session_id].get()->set_waiting_mode();
+	return session_list_[session_id];
+} // end of alloc_session()  
+
+
+// when connection is closed 
+//////////////////////////////////////////////////////////////////
+void server_ctrl::release_session( unsigned short session_id ) {
+
+	//std::cout << "Å¬¶óÀÌ¾ðÆ® Á¢¼Ó Á¾·á. ¼¼¼Ç ID: " << nSessionID << std::endl;
+	logger::info("release session");
+
+	session_list_[session_id]->shutdown();
+	session_queue_.push_back(session_id);
+
+	//PostAccept();
+	
+} // end of release_session()  
 
 // end of file 

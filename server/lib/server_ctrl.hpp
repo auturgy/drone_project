@@ -28,8 +28,8 @@ public:
 	bool stop();
 
 
-	session& alloc_session();									// allocate new session for incoming connection
-	void release_session();										// when connection is closed 
+	boost::shared_ptr<session> alloc_session();					// allocate new session for incoming connection
+	void release_session( unsigned short session_id );			// when connection is closed 
 
 protected:
 
@@ -41,8 +41,9 @@ protected:
 	boost::asio::io_service ios_;								// async io 
 	boost::asio::io_service::work work_;						// asio work
 
-	std::vector< boost::shared_ptr < session > > session_list_;
-	std::deque< unsigned short > session_queue_;
+	// session manager 
+	std::vector<boost::shared_ptr<session>> session_list_;		// all session instances
+	std::deque<unsigned short> session_queue_;					// session IDs not in use. 
 
 private:
 	static std::unique_ptr<server_ctrl> instance_;				// server controller
