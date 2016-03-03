@@ -9,14 +9,19 @@ bool tcp_listener::PostAccept() {
 		return false;
 	}
 
-	session ss = server_ctrl::get().alloc_session();
+	boost::shared_ptr<session> ss_ptr = server_ctrl::get().alloc_session();
+
+	if(ss_ptr == nullptr) {
+		logger::warning("not enough session instance !!!");
+		return false;	
+	}
 
 	acceptor_.async_accept(
-		ss.socket(),
+		ss_ptr.get()->socket(),
 		boost::bind(
 			&tcp_listener::handle_accept,
 			this->shared_from_this(),
-			&ss,
+			ss_ptr.get(),
 			boost::asio::placeholders::error
 			)
 		);
@@ -31,10 +36,11 @@ void tcp_listener::handle_accept(session* ss_ptr, const boost::system::error_cod
 	{
 		logger::info("Connection is established~" );
 		
-		//pSession->Init();
-		//pSession->PostReceive();
+		// session is working properly 
+		ss_ptr->open();
+		ss_ptr->post_recv();
 		
-		// waiting for next connection 
+		// waiting for next connection
 		PostAccept();
 	}
 	else 
