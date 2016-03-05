@@ -26,6 +26,8 @@ bool tcp_listener::PostAccept() {
 			)
 		);
 
+	logger::info("Listen...." );
+
 	return true;
 }
 

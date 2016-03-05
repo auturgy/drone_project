@@ -33,7 +33,8 @@ bool session::open() {
 
 	// update session statement into SS_OPEN
 	set_session_stat(SS_OPEN);
-	
+
+	logger::info("Session is sucessfully open." );	
 	return true;
 }
 
@@ -42,6 +43,8 @@ void session::shutdown() {
 	socket_->close();
 
 	set_session_stat(SS_CLOSE);
+
+	logger::info("Session is shut down" );
 }
 
 // set the buffer into io service in order to receive incoming data   
@@ -59,6 +62,8 @@ bool session::post_recv() {
 					boost::asio::placeholders::bytes_transferred ) 
 	);
 
+
+	logger::info("Session is ready to read" );
 	return true;
 }
 

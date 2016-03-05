@@ -2,8 +2,6 @@
 
 #include "utils.hpp"
 
-class tcp_listener;
-
 // Session Class
 //////////////////////////////////////////////////////////////////
 class session /*: public boost::enalbed_shread_from_this<session>*/ {
