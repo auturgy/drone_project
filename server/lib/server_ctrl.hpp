@@ -2,8 +2,8 @@
 
 #include "utils.hpp"
 
-
 class session;
+class tcp_listener;
 
 // Server Controller Class
 //////////////////////////////////////////////////////////////////
@@ -14,19 +14,21 @@ class server_ctrl : private boost::noncopyable {
 
 //---------------------- Member Functions ----------------------//
 private:
-	server_ctrl()
-		:ios_()
-		,work_(ios_) {}											// constructor
+	server_ctrl();												// constructor
 
 public:
 	virtual ~server_ctrl() {}									// destructor (do nothing)
 	static server_ctrl& get();									// singleton method
 	std::size_t get_number_of_process();						// check the maximum number of CPUs
 
-	bool init( const std::vector< boost::shared_ptr < session > >& sessions, const unsigned short max_num );
-	bool start();
-	bool stop();
+	bool init();												// initialize server 
+	bool init( 
+		const std::vector< boost::shared_ptr < session > >& sessions, 
+		const unsigned short max_num 
+		);
 
+	bool start();												// start server
+	bool stop();												// stop server
 
 	boost::shared_ptr<session> alloc_session();					// allocate new session for incoming connection
 	void release_session( unsigned short session_id );			// when connection is closed 
@@ -40,6 +42,8 @@ protected:
 protected:
 	boost::asio::io_service ios_;								// async io 
 	boost::asio::io_service::work work_;						// asio work
+
+	boost::shared_ptr<tcp_listener> listener_;					// listener 
 
 	// session manager 
 	std::vector<boost::shared_ptr<session>> session_list_;		// all session instances

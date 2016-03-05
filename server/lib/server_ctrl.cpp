@@ -1,5 +1,6 @@
 #include "server_ctrl.hpp"
 #include "session.hpp"
+#include "tcp_listener.hpp"
 #include <boost/make_shared.hpp>
 
 // get the number of process on server 
@@ -18,6 +19,14 @@ server_ctrl& server_ctrl::get(){
 	return *p;
 }
 
+// constructor
+//////////////////////////////////////////////////////////////////
+server_ctrl::server_ctrl()
+	:ios_()
+	,work_(ios_) 
+{
+	listener_ = boost::make_shared<tcp_listener>(boost::ref(ios_),DEFAULT_PORT_NUMBER);
+}											
 
 // get the number of process on server 
 //////////////////////////////////////////////////////////////////
@@ -40,31 +49,61 @@ std::size_t server_ctrl::get_number_of_process() {
 } // end of get_number_of_process()
 
 
-// 
+// default init() function 
 //////////////////////////////////////////////////////////////////
-bool server_ctrl::init( 
-	const std::vector< boost::shared_ptr < session > >& sessions = std::vector< boost::shared_ptr < session > >(), 
-	const unsigned short max_num = 0 
-	){
+bool server_ctrl::init(){
 
-	if( max_num > 0 ) {
+	logger::info("Default session class is used to handle each connection");
 
-		logger::info("To process instances inhereted from session class");
-
-	} else {
-
-		logger::info("Default session class is used to handle each connection");
-
-		for( int i = 0; i < MAX_SESSION_COUNT; ++i )
-		{
-			boost::shared_ptr<session> ss_ptr = boost::make_shared<session>(ios_, i);
-			session_list_.push_back(ss_ptr);
-			session_queue_.push_back(i);
-		}
+	for( int i = 0; i < MAX_SESSION_COUNT; ++i )
+	{
+		boost::shared_ptr<session> ss_ptr = boost::make_shared<session>(ios_, i);
+		session_list_.push_back(ss_ptr);
+		session_queue_.push_back(i);
 	}
 
 	return true;
 } // end of init()
+
+// init() function to take extend session class in 
+//////////////////////////////////////////////////////////////////
+bool server_ctrl::init( const std::vector< boost::shared_ptr < session > >& sessions, 
+						const unsigned short max_num) 
+{
+	logger::info("To process instances inhereted from session class");
+
+	// add codes to handle this~~~!!! 
+
+	return true;
+} // end of init()
+
+
+
+// start server
+//////////////////////////////////////////////////////////////////
+bool server_ctrl::start() {
+
+	// post listen socket 
+	listener_.get()->PostAccept();
+
+	logger::info("Server is running");
+
+	// run io service
+	ios_.run();	
+
+	return true;
+} // end of start()
+
+// turn off server
+//////////////////////////////////////////////////////////////////
+bool server_ctrl::stop() {
+
+	logger::info("Server is turning off");
+	
+	// do something 	
+
+	return true;
+} // end fo stop()
 
 // allocate new session for incoming connection
 //////////////////////////////////////////////////////////////////
