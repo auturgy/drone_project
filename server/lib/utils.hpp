@@ -9,7 +9,9 @@
 // const
 //////////////////////////////////////////////////////////////////
 const unsigned short SESSION_NUM_LIMIT = 65535;
-const unsigned short MAX_SESSION_COUNT = 100;					// shold be smaller than SESSION_NUM_LIMIT
+const unsigned short MAX_SESSION_COUNT = 100;					// shold be smaller than SESSION_NUM_LIMIT						// default port number
+
+const unsigned short DEFAULT_PORT_NUMBER = 31400;				// default port number
 
 const unsigned short MAX_RECEIVE_BUFFER_LEN = 512;				// how about MAX MTU size 1500? 
 
