@@ -1,0 +1,8 @@
+#include "utils.hpp"
+
+// Logger instance 
+//////////////////////////////////////////////////////////////////
+std::unique_ptr<Logger> Logger::instance_;
+
+
+// end of file 
