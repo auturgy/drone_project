@@ -18,6 +18,11 @@ public:
 		: acceptor_(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 	{}
 
+	bool start_listening() {									//	start listening 
+		return PostAccept();
+	}
+
+protected:
 	bool PostAccept();											// waiting for client connection 
 	void handle_accept(
 		session* ss_ptr, 
