@@ -9,10 +9,14 @@ bool tcp_listener::PostAccept() {
 		return false;
 	}
 
+	Logger::info() << "tcp_listener::PostAccept() - BEGIN" << std::endl;
+
 	boost::shared_ptr<session> ss_ptr = server_ctrl::get().alloc_session();
 
 	if(ss_ptr == nullptr) {
-		logger::warning("not enough session instance !!!");
+
+		Logger::warning() << "not enough session instance !!!" << std::endl;
+
 		return false;	
 	}
 
@@ -26,17 +30,18 @@ bool tcp_listener::PostAccept() {
 			)
 		);
 
-	logger::info("Listen...." );
+	Logger::info() << "Listen...." << std::endl;
 
 	return true;
-}
+} // end of PostAccept()
+
 
 // this function is all after async_accpt is done
 //////////////////////////////////////////////////////////////////
 void tcp_listener::handle_accept(session* ss_ptr, const boost::system::error_code& error) {
 	if (!error)
 	{
-		logger::info("Connection is established~" );
+		Logger::info() << "Connection is established~...." << std::endl;
 		
 		// session is working properly 
 		ss_ptr->open();
@@ -47,9 +52,8 @@ void tcp_listener::handle_accept(session* ss_ptr, const boost::system::error_cod
 	}
 	else 
 	{
-		logger::error("An error is occured during accepting new connection");
-		//std::cout << "error No: " << error.value() << " error Message: " << error.message() << std::endl;
+		Logger::error() << "error No: " << error.value() << " error Message: " << error.message() << std::endl;
 	}
-}
+} // end of handle_accept()
 
-
+// end of file 

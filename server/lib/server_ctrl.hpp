@@ -27,11 +27,13 @@ public:
 		const unsigned short max_num 
 		);
 
-	bool start();												// start server
+	virtual bool start();										// start server
 	bool stop();												// stop server
 
 	boost::shared_ptr<session> alloc_session();					// allocate new session for incoming connection
-	void release_session( unsigned short session_id );			// when connection is closed 
+	void release_session( unsigned short session_id );			// when connection is closed
+
+	void add_listener(unsigned short port_num);					// add listener with dedicated port number 								
 
 protected:
 
@@ -43,7 +45,10 @@ protected:
 	boost::asio::io_service ios_;								// async io 
 	boost::asio::io_service::work work_;						// asio work
 
-	boost::shared_ptr<tcp_listener> listener_;					// listener 
+	//boost::shared_ptr<tcp_listener> listener_;				// listener 
+
+	typedef std::map<unsigned short, boost::shared_ptr<tcp_listener>> listeners_map_t;
+	listeners_map_t listeners_;									// listeners to accept in various port
 
 	// session manager 
 	std::vector<boost::shared_ptr<session>> session_list_;		// all session instances

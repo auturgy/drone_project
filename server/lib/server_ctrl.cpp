@@ -2,6 +2,8 @@
 #include "session.hpp"
 #include "tcp_listener.hpp"
 #include <boost/make_shared.hpp>
+#include <boost/lexical_cast.hpp>
+
 
 // get the number of process on server 
 //////////////////////////////////////////////////////////////////
@@ -19,14 +21,16 @@ server_ctrl& server_ctrl::get(){
 	return *p;
 }
 
+
 // constructor
 //////////////////////////////////////////////////////////////////
 server_ctrl::server_ctrl()
 	:ios_()
 	,work_(ios_) 
 {
-	listener_ = boost::make_shared<tcp_listener>(boost::ref(ios_),DEFAULT_PORT_NUMBER);
+
 }											
+
 
 // get the number of process on server 
 //////////////////////////////////////////////////////////////////
@@ -53,9 +57,9 @@ std::size_t server_ctrl::get_number_of_process() {
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::init(){
 
-	logger::info("Default session class is used to handle each connection");
+	Logger::info() << "Default session class is used to handle each connection" << std::endl;
 
-	for( int i = 0; i < MAX_SESSION_COUNT; ++i )
+	for( int i = 0; i < MAX_SESSION_COUNT; i++ )
 	{
 		boost::shared_ptr<session> ss_ptr = boost::make_shared<session>(ios_, i);
 		session_list_.push_back(ss_ptr);
@@ -70,7 +74,7 @@ bool server_ctrl::init(){
 bool server_ctrl::init( const std::vector< boost::shared_ptr < session > >& sessions, 
 						const unsigned short max_num) 
 {
-	logger::info("To process instances inhereted from session class");
+	Logger::info() << "To process instances inhereted from session class" << std::endl;
 
 	// add codes to handle this~~~!!! 
 
@@ -78,32 +82,35 @@ bool server_ctrl::init( const std::vector< boost::shared_ptr < session > >& sess
 } // end of init()
 
 
-
 // start server
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::start() {
 
-	// post listen socket 
-	listener_.get()->PostAccept();
+	Logger::info() << "server_ctrl::start" << std::endl;
+	
+	// run listener
+	add_listener(DEFAULT_PORT_NUMBER);
 
-	logger::info("Server is running");
-
+	Logger::info() << "Server is running" << std::endl;
 	// run io service
 	ios_.run();	
 
 	return true;
 } // end of start()
 
+
 // turn off server
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::stop() {
 
-	logger::info("Server is turning off");
-	
+	//logger::info("Server is turning off");
+	Logger::info() << "Server is shutdown" << std::endl;
+
 	// do something 	
 
 	return true;
 } // end fo stop()
+
 
 // allocate new session for incoming connection
 //////////////////////////////////////////////////////////////////
@@ -111,6 +118,7 @@ boost::shared_ptr<session> server_ctrl::alloc_session() {
 
 	// update session manager 
 	unsigned short session_id = session_queue_.front();
+	Logger::info() << "allocate session, ID = " << session_id << std::endl;
 	session_queue_.pop_front();									// redundant 
 
 	// session statement must be SS_CLOSE 
@@ -125,14 +133,32 @@ boost::shared_ptr<session> server_ctrl::alloc_session() {
 //////////////////////////////////////////////////////////////////
 void server_ctrl::release_session( unsigned short session_id ) {
 
-	//std::cout << "Å¬¶óÀÌ¾ðÆ® Á¢¼Ó Á¾·á. ¼¼¼Ç ID: " << nSessionID << std::endl;
-	logger::info("release session");
+	Logger::info() << "release session, ID = " << session_id << std::endl;
 
-	session_list_[session_id]->shutdown();
+	session_list_[session_id].get()->shutdown();
 	session_queue_.push_back(session_id);
 
-	//PostAccept();
-	
 } // end of release_session()  
+
+
+// add listener
+//////////////////////////////////////////////////////////////////
+void server_ctrl::add_listener(unsigned short port_num){
+
+	Logger::info() << "server_ctrl::add_listener (port:" << port_num <<") - BEGIN" << std::endl;
+
+	listeners_map_t::const_iterator it = listeners_.find(port_num);
+	if(it != listeners_.end()) {
+		throw std::logic_error(
+			"Such listener for port '"
+			+ boost::lexical_cast<std::string>(port_num)
+			+ "' already created"
+		);	
+	}
+
+	listeners_[port_num] = boost::make_shared<tcp_listener>(boost::ref(ios_), port_num);
+	listeners_[port_num].get()->start_listening();
+}
+
 
 // end of file 
