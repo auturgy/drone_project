@@ -2,6 +2,7 @@
 
 // include 
 //////////////////////////////////////////////////////////////////
+#include "protocol.hpp"
 #include <boost/thread/thread.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -10,10 +11,9 @@
 //////////////////////////////////////////////////////////////////
 const unsigned short SESSION_NUM_LIMIT = 65535;
 const unsigned short MAX_SESSION_COUNT = 100;					// shold be smaller than SESSION_NUM_LIMIT						// default port number
+const unsigned short MAX_BUFF_NUM_ON_EACH_SESSION = 6;			// recv, send, temp * 2
 
 const unsigned short DEFAULT_PORT_NUMBER = 31400;				// default port number
-
-const unsigned short MAX_RECEIVE_BUFFER_LEN = 512;				// how about MAX MTU size 1500? 
 
 // session statement 
 const unsigned short SS_CLOSE = 0;								// session is off 
