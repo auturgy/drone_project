@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////
 const unsigned short SESSION_NUM_LIMIT = 65535;
 const unsigned short MAX_SESSION_COUNT = 100;					// shold be smaller than SESSION_NUM_LIMIT						// default port number
-const unsigned short MAX_BUFF_NUM_ON_EACH_SESSION = 6;			// recv, send, temp * 2
+const unsigned short MAX_BUFF_NUM_ON_EACH_SESSION = 6;			// (recv + send) * 3 = 6
 
 const unsigned short DEFAULT_PORT_NUMBER = 31400;				// default port number
 
@@ -65,7 +65,7 @@ public:
 		Logger *p =  &get();
 
 #ifdef _DEBUG_		
-		*p << "[INFO] ";
+		*p << "[ERROR] ";
 #endif /*_DEBUG_*/		
 
 		return *p;
