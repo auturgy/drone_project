@@ -5,14 +5,14 @@
 struct PACKET_HEADER
 {
 	unsigned short id_;
-	unsigned short size_;
+	unsigned short size_;										// packet size including packet header size 
 };
 
 // consts
 //////////////////////////////////////////////////////////////////
 const unsigned short MAX_RECEIVE_BUFFER_LEN = 512;				// how about MAX MTU size 1500? 
 const unsigned short PACKET_HEADER_SIZE = sizeof(PACKET_HEADER);
-const unsigned short PACKET_SIZE = PACKET_HEADER_SIZE + MAX_RECEIVE_BUFFER_LEN;
+const unsigned short MAX_PACKET_SIZE = PACKET_HEADER_SIZE + MAX_RECEIVE_BUFFER_LEN;
 
 // protocols 
 //
