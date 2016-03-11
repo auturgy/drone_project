@@ -21,7 +21,7 @@ packeted_data2 = struct.pack('@HH20s', protocol_id, 4+len(packet_data1), packet_
 #print(packeted_data1);
 print(struct.unpack('@HH20s', packeted_data2));
 
-def my_test():
+def server_stress_test():
 	# test loop for connection and disconnection 
 	for i in range(2000):	
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
@@ -39,4 +39,4 @@ def my_test():
 		s.close();
 		print ("Socket is cloesd.");
 
-my_test();
+server_stress_test();
