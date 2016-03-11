@@ -32,6 +32,8 @@ public:
 	void shutdown();
 
 	bool post_recv();											// preparation for receiving data from client 
+	bool post_recv(unsigned short start, unsigned short size);	// adjust packet 
+
 	bool post_send(const char* data, const unsigned short size);// send data to client
 	//bool post_send(const boost::asio::const_buffers_1& buff);
 
@@ -54,9 +56,12 @@ protected:
 protected:
 	boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
 	unsigned short session_id_;									// max_num: 65,535
-	
-	std::array<char, MAX_RECEIVE_BUFFER_LEN> rcv_buff_;
 
 	unsigned short session_stat_;
 
+	std::deque< boost::shared_ptr< char[] > > buf_queue_;
+	boost::shared_ptr< char[] >	rcv_buff_;
+	boost::shared_ptr< char[] >	proc_packet_;
+
+	unsigned short rcv_buff_start_;
 };

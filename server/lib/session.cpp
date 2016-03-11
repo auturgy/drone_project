@@ -2,14 +2,24 @@
 #include "server_ctrl.hpp"
 #include <boost/make_shared.hpp>
 
-
 // session constructor
 //////////////////////////////////////////////////////////////////
 session::session( boost::asio::io_service& io_service, unsigned short session_id)
 	: session_id_(session_id)
 	, session_stat_(SS_CLOSE)
+	, rcv_buff_start_(0)
 {
 	socket_ = boost::make_shared<boost::asio::ip::tcp::socket>(boost::ref(io_service));
+
+	rcv_buff_ = nullptr;
+	proc_packet_ = nullptr;
+
+	for( int i = 0; i < MAX_BUFF_NUM_ON_EACH_SESSION; i++ )
+	{	
+		boost::shared_ptr< char[] > ss_ptr = boost::make_shared<char[MAX_PACKET_SIZE]>();
+		buf_queue_.push_back(ss_ptr);
+	}
+
 } // end of session()
 
 
@@ -68,11 +78,20 @@ bool session::post_recv() {
 
 	Logger::info() << "session::post_recv() - BEGIN" << std::endl;
 
+	if(buf_queue_.empty()){
+		Logger::error() << "out of buffer queue" << std::endl;
+		return false;
+	} else {
+		rcv_buff_ = buf_queue_.front(); 
+	}
+
+	rcv_buff_start_ = 0;
+
 	// socket has to be opened first before doing this. 
 	if(!this->socket().is_open()) return false;
 
 	this->socket().async_read_some ( 
-		boost::asio::buffer(rcv_buff_), 
+		boost::asio::buffer(rcv_buff_.get(), MAX_PACKET_SIZE), 
 		boost::bind( &session::handle_receive, 
 					this, 
 					boost::asio::placeholders::error, 
@@ -84,13 +103,36 @@ bool session::post_recv() {
 	return true;
 } // end of post_recv()
 
+// set the buffer into io service in order to receive incoming data   
+//////////////////////////////////////////////////////////////////
+bool session::post_recv(unsigned short start, unsigned short size) {
+
+	Logger::info() << "session::post_recv() - start: " << start << " size: " << size << std::endl;
+
+	// socket has to be opened first before doing this. 
+	if(!this->socket().is_open()) return false;
+
+	rcv_buff_start_ = start;
+
+	this->socket().async_read_some ( 
+		boost::asio::buffer(&rcv_buff_.get()[rcv_buff_start_], size), 
+		boost::bind( &session::handle_receive, 
+					this, 
+					boost::asio::placeholders::error, 
+					boost::asio::placeholders::bytes_transferred ) 
+	);
+
+	Logger::info() << "Session is ready to read" << std::endl;
+
+	return true;
+} // end of post_recv()
 
 // after receiving data, this function called. 
 // do not forget to call post_recv() so that session can receive another data  
 //////////////////////////////////////////////////////////////////
 void session::handle_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	Logger::info() << "session::handle_receive() - BEGIN" << std::endl;
+	Logger::info() << "session::handle_receive() bytes_transferred = " << bytes_transferred << std::endl;
 
 	if( error )
 	{
@@ -107,11 +149,88 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 	}
 	else
 	{
-		/* do somehing here */
-		process_packet(bytes_transferred);
 
-		// reset io service to receive data
+#ifdef _SIMPLE_ECHO_TEST_
+		proc_packet_ = rcv_buff_;
+		rcv_buff_ = nullptr;
 		post_recv();
+
+		post_send( proc_packet_.get(), bytes_transferred );
+
+#else /* _SIMPLE_ECHO_TEST_ */
+
+		unsigned short packet_size_received = rcv_buff_start_ + bytes_transferred;
+		unsigned short loop_limit = 0; 
+
+		while (packet_size_received > 0) {
+		
+			if( packet_size_received < sizeof(PACKET_HEADER) ) 
+			{
+				Logger::warning() << "size of received packet is not enough to handle" << std::endl;
+				post_recv(packet_size_received, MAX_PACKET_SIZE - packet_size_received);
+				return;
+			}
+
+			PACKET_HEADER* header = (PACKET_HEADER*)rcv_buff_.get();
+
+			// 0 < PACKET received < MAX_PACKET_SIZE 
+			if( header->size_  <= 0 || header->size_ > MAX_PACKET_SIZE ) {
+				Logger::error() << "protocol error!!!! id: " << session_id_ << std::endl; 
+				server_ctrl::get().release_session( session_id_ );
+				return;
+			}
+
+			// normal case 
+			if(packet_size_received == header->size_) {
+
+				proc_packet_ = rcv_buff_;
+				rcv_buff_ = nullptr;
+				post_recv();
+
+				// test !!!!
+				post_send( proc_packet_.get(), packet_size_received );
+
+			// not enough data to handle 
+			} else if (packet_size_received < header->size_ ) {
+
+				Logger::warning() << "need more data to pocess" << std::endl;
+				post_recv(packet_size_received, header->size_ - packet_size_received);
+				return;
+
+			// split data into two because it is bigger than size in header 
+			} else { 
+
+				Logger::warning() << "unexpectedly bigger data is comming." << std::endl;
+				proc_packet_ = rcv_buff_;
+				rcv_buff_ = nullptr;
+
+				if(buf_queue_.empty()){
+					Logger::error() << "out of buffer queue" << std::endl;
+					return;
+				} else {
+					rcv_buff_ = buf_queue_.front(); 
+				}
+
+				// make new rcv_buff able to take rest of data that is needed... 
+				memcpy(rcv_buff_.get(), &proc_packet_.get()[header->size_], packet_size_received - header->size_ );
+				
+				// test !!!!
+				post_send( proc_packet_.get(), header->size_ );
+			}
+
+			packet_size_received -= header->size_;
+
+			// have to find the most efficient value, not just 10 
+			if(loop_limit >= 10) {
+				Logger::error() << "something is wrong~!!!!! id: " << session_id_ << std::endl;
+				server_ctrl::get().release_session( session_id_ );
+				return;
+			}
+			loop_limit++;
+		}
+
+#endif /* not _SIMPLE_ECHO_TEST_ */
+		
 	}
 } // end of handle_receive()
 
@@ -130,8 +249,8 @@ bool session::post_send(const char* data, const unsigned short size) {
 								boost::asio::placeholders::error,
 								boost::asio::placeholders::bytes_transferred )
 							);
-
 	return true;
+
 } // end of post_send()
 
 
@@ -140,6 +259,10 @@ bool session::post_send(const char* data, const unsigned short size) {
 void session::handle_send(const boost::system::error_code& error, std::size_t bytes_transferred) {
 
 	/* do nothing at the moment */
+	buf_queue_.push_back(proc_packet_);
+	proc_packet_.get()[0] = 0x00;
+	proc_packet_ = nullptr;
+	
 	Logger::info() << "session::handle_send() - do nothing at the moment" << std::endl;
 
 } // end of handle_send()
