@@ -31,7 +31,14 @@ public:
 	bool stop();												// stop server
 
 	boost::shared_ptr<session> alloc_session();					// allocate new session for incoming connection
-	void release_session( unsigned short session_id );			// when connection is closed
+	// when connection is closed
+	void release_session( boost::shared_ptr<session> ss_ptr );
+	//void release_session( unsigned short session_id );		
+
+
+	// packet pool management 
+	boost::shared_ptr<char[]> alloc_packet();					
+	void release_packet( boost::shared_ptr<char[]> packet );
 
 	void add_listener(unsigned short port_num);					// add listener with dedicated port number 								
 
@@ -51,8 +58,12 @@ protected:
 	listeners_map_t listeners_;									// listeners to accept in various port
 
 	// session manager 
-	std::vector<boost::shared_ptr<session>> session_list_;		// all session instances
-	std::deque<unsigned short> session_queue_;					// session IDs not in use. 
+	//std::vector<boost::shared_ptr<session>> session_list_;		// all session instances
+	//std::deque<unsigned short> session_queue_;					// session IDs not in use.
+
+	ringbuffer<boost::shared_ptr<session>, MAX_SESSION_COUNT+1> session_new_list_;
+
+	ringbuffer<boost::shared_ptr<char[]>, PACKET_POOL_COUNT+1> packet_pool_;
 
 private:
 	static std::unique_ptr<server_ctrl> instance_;				// server controller

@@ -1,15 +1,23 @@
 #pragma once
 
 #include "utils.hpp"
+#include <boost/enable_shared_from_this.hpp>
 
 // Session Class
 //////////////////////////////////////////////////////////////////
-class session /*: public boost::enalbed_shread_from_this<session>*/ {
+class session : public boost::enable_shared_from_this<session> {
 
 //---------------------- Member Functions ----------------------//
 public:
 	explicit session( boost::asio::io_service& io_service, unsigned short session_id);
-	virtual ~session() {}
+	virtual ~session() {
+		Logger::info() << "session destruction (ID:" << session_id_ << ")" << std::endl;
+	}
+
+	boost::shared_ptr<session> get()
+    {
+        return shared_from_this();
+    }
 
 	// return the socket which this connection gets
 	boost::asio::ip::tcp::socket& socket() {
@@ -17,7 +25,7 @@ public:
 	}
 
 	// return session ID
-	unsigned short sesson_id() {
+	unsigned short session_id() {
 		return session_id_;
 	}
 
@@ -41,6 +49,7 @@ public:
 protected:
 	// internal function to change session statement
 	inline void set_session_stat(unsigned short new_session_stat) {	
+		Logger::info() << "Session(" << session_id_ <<") status has changed into " << new_session_stat <<std::endl;
 		session_stat_ = new_session_stat;
 	}
 
@@ -59,7 +68,7 @@ protected:
 
 	unsigned short session_stat_;
 
-	std::deque< boost::shared_ptr< char[] > > buf_queue_;
+	//std::deque< boost::shared_ptr< char[] > > buf_queue_;
 	boost::shared_ptr< char[] >	rcv_buff_;
 	boost::shared_ptr< char[] >	proc_packet_;
 

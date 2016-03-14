@@ -57,24 +57,34 @@ std::size_t server_ctrl::get_number_of_process() {
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::init(){
 
-	Logger::info() << "Default session class is used to handle each connection" << std::endl;
+	Logger::info() << "Server init - Default session class is used to handle each connection" << std::endl;
 
-	for( int i = 0; i < MAX_SESSION_COUNT; i++ )
+	int i;
+
+	for( i = 0 ; i < MAX_SESSION_COUNT ; i++ )
 	{
 		boost::shared_ptr<session> ss_ptr = boost::make_shared<session>(ios_, i);
-		session_list_.push_back(ss_ptr);
-		session_queue_.push_back(i);
+		//session_list_.push_back(ss_ptr);
+		//session_queue_.push_back(i);
+		session_new_list_.push(ss_ptr);
+	}
+
+	for( i = 0; i < PACKET_POOL_COUNT ; i++ )
+	{
+		boost::shared_ptr<char[]> packet_ptr = boost::make_shared<char[MAX_PACKET_SIZE]>();
+		packet_pool_.push(packet_ptr);
 	}
 
 	return true;
 } // end of init()
+
 
 // init() function to take extend session class in 
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::init( const std::vector< boost::shared_ptr < session > >& sessions, 
 						const unsigned short max_num) 
 {
-	Logger::info() << "To process instances inhereted from session class" << std::endl;
+	Logger::info() << "Server Init - To process instances inhereted from session class" << std::endl;
 
 	// add codes to handle this~~~!!! 
 
@@ -116,19 +126,43 @@ bool server_ctrl::stop() {
 //////////////////////////////////////////////////////////////////
 boost::shared_ptr<session> server_ctrl::alloc_session() {
 
+	/*
 	// update session manager 
 	unsigned short session_id = session_queue_.front();
 	Logger::info() << "allocate session, ID = " << session_id << std::endl;
 	session_queue_.pop_front();									// redundant 
-
+	
 	// session statement must be SS_CLOSE 
 	assert(session_list_[session_id].get()->get_session_stat() == SS_CLOSE);
 
 	session_list_[session_id].get()->set_waiting_mode();
+
 	return session_list_[session_id];
+	*/
+	boost::shared_ptr<session> ss_ptr = session_new_list_.pop();
+
+	Logger::info() << "allocate session, ID = " << ss_ptr.get()->session_id() << std::endl;
+
+	// session statement must be SS_CLOSE 
+	assert(ss_ptr.get()->get_session_stat() == SS_CLOSE);
+	ss_ptr.get()->set_waiting_mode();
+
+	return ss_ptr;
 } // end of alloc_session()  
 
 
+// when connection is closed 
+//////////////////////////////////////////////////////////////////
+void server_ctrl::release_session( boost::shared_ptr<session> ss_ptr ) {
+
+	Logger::info() << "release session id: " << ss_ptr.get()->session_id() << std::endl;
+
+	ss_ptr.get()->shutdown();
+	session_new_list_.push(ss_ptr);
+
+} // end of release_session()  
+
+/*
 // when connection is closed 
 //////////////////////////////////////////////////////////////////
 void server_ctrl::release_session( unsigned short session_id ) {
@@ -138,8 +172,34 @@ void server_ctrl::release_session( unsigned short session_id ) {
 	session_list_[session_id].get()->shutdown();
 	session_queue_.push_back(session_id);
 
-} // end of release_session()  
+} // end of release_session()
+*/
 
+// allocate a new packet for receive/process/send operation in session 
+//////////////////////////////////////////////////////////////////
+boost::shared_ptr<char[]> server_ctrl::alloc_packet() {
+
+	Logger::info() << "allocate packet" << std::endl;
+
+	boost::shared_ptr<char[]> packet_ptr = packet_pool_.pop();
+
+	return packet_ptr;
+} // end of alloc_packet()  
+
+
+// released packet get back to packet pool  
+//////////////////////////////////////////////////////////////////
+void server_ctrl::release_packet( boost::shared_ptr<char[]> packet_ptr) {
+
+	Logger::info() << "release packet" << std::endl;
+
+	packet_ptr.get()[0] = 0x00; // kind of init 
+
+	packet_pool_.push(packet_ptr);
+
+	//packet_ptr = nullptr;
+
+} // end of release_packet() 
 
 // add listener
 //////////////////////////////////////////////////////////////////
