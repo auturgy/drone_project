@@ -1,5 +1,6 @@
 import socket;
-import struct 
+import time;
+import struct; 
 
 host = 'localhost';
 port = 31400;
@@ -23,11 +24,11 @@ print(struct.unpack('@HH20s', packeted_data2));
 
 def server_stress_test():
 	# test loop for connection and disconnection 
-	for i in range(2000):	
+	for i in range(20000):	
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
 		s.connect((host, port));
 		# test
-		for j in range(2):
+		for j in range(200):
 			s.send(packeted_data1);	
 			data = s.recv(size);
 			print(struct.unpack('@HH10s', data));
@@ -35,8 +36,32 @@ def server_stress_test():
 			s.send(packeted_data2);	
 			data = s.recv(size);
 			print(struct.unpack('@HH20s', data));
+			time.sleep(0.01);
+
+		s.close();
+		print ("Socket is cloesd.");
+
+def wrong_packet_endurance_test():
+	# test loop for connection and disconnection 
+	for i in range(20000):	
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
+		s.connect((host, port));
+		# test
+		for j in range(200):
+			s.send(b'a1234567890');	
+			data = s.recv(size);
+			print(repr(data));
+
+			s.send(b"abcdefghijklmnopqrstuvwxyz");	
+			data = s.recv(size);
+			print(repr(data));
+			time.sleep(0.01);
 
 		s.close();
 		print ("Socket is cloesd.");
 
 server_stress_test();
+#wrong_packet_endurance_test();
+
+
+
