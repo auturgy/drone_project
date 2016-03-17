@@ -5,36 +5,16 @@
 // session constructor
 //////////////////////////////////////////////////////////////////
 session::session( boost::asio::io_service& io_service, unsigned short session_id)
-	: session_id_(session_id)
+	: strand_(boost::ref(io_service))
+	, session_id_(session_id)
 	, session_stat_(SS_CLOSE)
 	, rcv_buff_start_(0)
 {
 	socket_ = boost::make_shared<boost::asio::ip::tcp::socket>(boost::ref(io_service));
 
 	rcv_buff_ = nullptr;
-	proc_packet_ = nullptr;
-
-	//for( int i = 0; i < MAX_BUFF_NUM_ON_EACH_SESSION; i++ )
-	//{	
-	//	boost::shared_ptr< char[] > ss_ptr = boost::make_shared<char[MAX_PACKET_SIZE]>();
-	//	buf_queue_.push_back(ss_ptr);
-	//}
 
 } // end of session()
-
-
-/*
-session::session (
-	boost::asio::io_service& ios,
-	const boost::asio::ip::tcp::endpoint& endpoint
-	)
-		:socket_(boost::shared_ptr<boost::asio::ip::tcp::socket>(
-			boost::ref(ios)))
-{
-	socket_->connect(endpoint);
-} // end of session()
-*/
-
 
 // open session with client  
 //////////////////////////////////////////////////////////////////
@@ -63,15 +43,17 @@ void session::shutdown() {
 	//	socket_->shutdown(boost::asio::ip::tcp::socket::shutdown_both);	
 	//} catch (int ) {}
 
+	if(get_session_stat() == SS_CLOSE) {
+		return;
+	}
+
 	socket_->close();
 
 	set_session_stat(SS_CLOSE);
 
-	if(proc_packet_ != nullptr) {
-		server_ctrl::get().release_packet(proc_packet_);
-	}
 	if(rcv_buff_ != nullptr) {
-		server_ctrl::get().release_packet(rcv_buff_);
+		server_ctrl::get().release_packet(rcv_buff_->get()->id_);
+		rcv_buff_ = nullptr;
 	}
 
 	Logger::info() << "Session is shut down (ID:" << session_id_ <<")" << std::endl;
@@ -85,14 +67,9 @@ bool session::post_recv() {
 
 	Logger::info() << "session::post_recv() - BEGIN (ID:" << session_id_ <<")" << std::endl;
 
-	//if(buf_queue_.empty()){
-	//	Logger::error() << "out of buffer queue" << std::endl;
-	//	return false;
-	//} else {
-	//	rcv_buff_ = buf_queue_.front(); 
-	//	
-	//}
-	rcv_buff_ = server_ctrl::get().alloc_packet();
+	if(rcv_buff_ == nullptr) {
+		rcv_buff_ = &server_ctrl::get().alloc_packet();
+	}
 
 	rcv_buff_start_ = 0;
 
@@ -100,7 +77,7 @@ bool session::post_recv() {
 	if(!socket().is_open()) return false;
 
 	socket().async_read_some ( 
-		boost::asio::buffer(rcv_buff_.get(), MAX_PACKET_SIZE), 
+		boost::asio::buffer(rcv_buff_->get()->ptr_, MAX_PACKET_SIZE), 
 		boost::bind( &session::handle_receive, 
 					this->shared_from_this(), 
 					boost::asio::placeholders::error, 
@@ -114,9 +91,9 @@ bool session::post_recv() {
 
 // set the buffer into io service in order to receive incoming data   
 //////////////////////////////////////////////////////////////////
-bool session::post_recv(unsigned short start, unsigned short size) {
+bool session::post_recv(unsigned short start) {
 
-	Logger::info() << "session::post_recv() - start: " << start << " size: " << size << "(ID:" << session_id_ << ")" << std::endl;
+	Logger::info() << "session::post_recv() - start: " << start << "(ID:" << session_id_ << ")" << std::endl;
 
 	// socket has to be opened first before doing this. 
 	if(!socket().is_open()) return false;
@@ -124,7 +101,7 @@ bool session::post_recv(unsigned short start, unsigned short size) {
 	rcv_buff_start_ = start;
 
 	socket().async_read_some ( 
-		boost::asio::buffer(&rcv_buff_.get()[rcv_buff_start_], size), 
+		boost::asio::buffer(&rcv_buff_->get()->ptr_[rcv_buff_start_], MAX_PACKET_SIZE - rcv_buff_start_), 
 		boost::bind( &session::handle_receive, 
 					this->shared_from_this(), 
 					boost::asio::placeholders::error, 
@@ -141,7 +118,7 @@ bool session::post_recv(unsigned short start, unsigned short size) {
 //////////////////////////////////////////////////////////////////
 void session::handle_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	if( error )
+	if( error || bytes_transferred == 0 )
 	{
 		if( error == boost::asio::error::eof )
 		{
@@ -152,97 +129,63 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 			Logger::info() << "socket error is occured!!! (ID: " << session_id_ << ")" << std::endl;
 		}
 
-		//server_ctrl::get().release_session( session_id_ );
-		server_ctrl::get().release_session( get() );
+		boost::shared_ptr<session> this_ss_ptr = get();
+		server_ctrl::get().release_session( session_id_ );
 	}
 	else
 	{
 		Logger::info() << "session::handle_receive() bytes_transferred = " << bytes_transferred << std::endl;
 
-#ifdef _SIMPLE_ECHO_TEST_
+#ifdef _TEST_UNDER_NO_PROTOCOL_
 
-		proc_packet_ = rcv_buff_;
-		rcv_buff_ = nullptr;
+		post_send( rcv_buff_->get()->ptr_, bytes_transferred );
 		post_recv();
 
-		post_send( proc_packet_.get(), bytes_transferred );
-
-#else /* _SIMPLE_ECHO_TEST_ */
+#else /* _TEST_UNDER_NO_PROTOCOL_ */
 
 		unsigned short packet_size_received = rcv_buff_start_ + bytes_transferred;
-		unsigned short loop_limit = 0; 
+		unsigned short read_data = 0;
 
-		while (packet_size_received > 0) {
-		
+		while( packet_size_received > 0 )
+		{
 			if( packet_size_received < sizeof(PACKET_HEADER) ) 
 			{
-				Logger::warning() << "size of received packet is not enough to handle" << std::endl;
-				post_recv(packet_size_received, MAX_PACKET_SIZE - packet_size_received);
-				return;
+			break;
 			}
 
-			PACKET_HEADER* header = (PACKET_HEADER*)rcv_buff_.get();
+			const PACKET_HEADER* header = (PACKET_HEADER*)&rcv_buff_->get()->ptr_[read_data];
 
-			// 0 < PACKET received < MAX_PACKET_SIZE 
-			if( header->size_  <= 0 || header->size_ > MAX_PACKET_SIZE ) {
-				Logger::error() << "protocol error!!!! (ID:" << session_id_ << ")" << std::endl; 
-				//server_ctrl::get().release_session( session_id_ );
-				server_ctrl::get().release_session( get() );
-				return;
+			if( header->size_ <= packet_size_received )
+			{
+				process_packet( &rcv_buff_->get()->ptr_[read_data], header->size_);
+
+				packet_size_received -= header->size_;
+				read_data += header->size_;
 			}
-
-			// normal case 
-			if(packet_size_received == header->size_) {
-
-				proc_packet_ = rcv_buff_;
-				rcv_buff_ = nullptr;
-				post_recv();
-
-				// test !!!!
-				post_send( proc_packet_.get(), packet_size_received );
-
-			// not enough data to handle 
-			} else if (packet_size_received < header->size_ ) {
-
-				Logger::warning() << "need more data to pocess" << std::endl;
-				post_recv(packet_size_received, header->size_ - packet_size_received);
-				return;
-
-			// split data into two because it is bigger than size in header 
-			} else { 
-
-				Logger::warning() << "unexpectedly bigger data is comming." << std::endl;
-				proc_packet_ = rcv_buff_;
-				rcv_buff_ = nullptr;
-
-				//if(buf_queue_.empty()){
-				//	Logger::error() << "out of buffer queue" << std::endl;
-				//	return;
-				//} else {
-				//	rcv_buff_ = buf_queue_.front(); 
-				//}
-				rcv_buff_ = server_ctrl::get().alloc_packet();
-
-				// make new rcv_buff able to take rest of data that is needed... 
-				memcpy(rcv_buff_.get(), &proc_packet_.get()[header->size_], packet_size_received - header->size_ );
-				
-				// test !!!!
-				post_send( proc_packet_.get(), header->size_ );
+			else
+			{
+				break;
 			}
-
-			packet_size_received -= header->size_;
-
-			// have to find the most efficient value, not just 10 
-			if(loop_limit >= 10/*NEED TO FIX*/) {
-				Logger::error() << "something is wrong~!!!!! (ID:" << session_id_ << ")" << std::endl;
-				//server_ctrl::get().release_session( session_id_ );
-				server_ctrl::get().release_session( get() );
-				return;
-			}
-			loop_limit++;
 		}
 
-#endif /* not _SIMPLE_ECHO_TEST_ */
+		if(packet_size_received) {
+
+			assert(packet_size_received < MAX_PACKET_SIZE);
+
+			boost::shared_ptr<PKT_UNIT> *buff =  &server_ctrl::get().alloc_packet();
+			std::memcpy(buff->get()->ptr_, &rcv_buff_->get()->ptr_[read_data], packet_size_received );
+			std::memcpy(rcv_buff_->get()->ptr_, buff->get()->ptr_, packet_size_received );
+			server_ctrl::get().release_packet(buff->get()->id_);
+
+			post_recv(packet_size_received);
+
+		} else {
+
+			post_recv();
+
+		}
+
+#endif /* _TEST_UNDER_NO_PROTOCOL_ */
 		
 	}
 } // end of handle_receive()
@@ -255,46 +198,48 @@ bool session::post_send(const char* data, const unsigned short size) {
 	Logger::info() << "session::post_send() - BEGIN (ID:" << session_id_ <<")" << std::endl;
 
 	// socket has to be opened first before doing this. 
-	if(!this->socket().is_open()) return false;
+	if(!socket().is_open()) return false;
 
-	boost::asio::async_write( this->socket(), boost::asio::buffer( data, size ),
-							 	boost::bind( &session::handle_send, this->shared_from_this(),
-								boost::asio::placeholders::error,
-								boost::asio::placeholders::bytes_transferred )
+	boost::asio::async_write( socket(), boost::asio::buffer( data, size ),
+								strand_.wrap(
+								 	boost::bind( &session::handle_send, this->shared_from_this(),
+									boost::asio::placeholders::error,
+									boost::asio::placeholders::bytes_transferred )
+								 )
 							);
 	return true;
 
 } // end of post_send()
 
-
 // after sending is done, this function is called  
 //////////////////////////////////////////////////////////////////
 void session::handle_send(const boost::system::error_code& error, std::size_t bytes_transferred) {
-
-	if(error){
-		Logger::error() << "session::handle_send() - error happened: " << error << "(ID:" << session_id_ <<")" << std::endl;
-		server_ctrl::get().release_session( get() );
-	}
-	/* do nothing at the moment */
-	//buf_queue_.push_back(proc_packet_);
-	//proc_packet_.get()[0] = 0x00;
-	//proc_packet_ = nullptr;
-
-	Logger::info() << "session::handle_send() - do nothing at the moment (ID:" << session_id_ <<")" << std::endl;
-
-	server_ctrl::get().release_packet(proc_packet_);
-	proc_packet_ = nullptr;
+	
+	/* do nothing */
 
 } // end of handle_send()
 
 
 // analyze packet and do somehing like interacting with database  
 //////////////////////////////////////////////////////////////////
-void session::process_packet(std::size_t bytes_transferred) {
+void session::process_packet(const char* data, const unsigned short size) {
 
 	/* example: echo server */
 	Logger::info() << "session::process_packet()" << std::endl;
 
+	
+	boost::shared_ptr<PKT_UNIT> *buff =  &server_ctrl::get().alloc_packet();
+
+	std::memcpy(buff->get()->ptr_, data, size);
+	
+	//const PACKET_HEADER* header = (PACKET_HEADER*)buff->get()->ptr_;
+	/* do something here !!! */
+	
+	// send data received
+	post_send(buff->get()->ptr_, size);
+
+	server_ctrl::get().release_packet(buff->get()->id_);
+	
 } // end of process_packet()
 
 

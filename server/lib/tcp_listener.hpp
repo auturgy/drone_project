@@ -18,8 +18,14 @@ public:
 		: acceptor_(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 	{}
 
-	bool start_listening() {									//	start listening 
-		return PostAccept();
+	bool start_listening(std::size_t concur_listener_num) {									//	start listening 
+		
+		bool ret = true;
+		for( std::size_t i = 0 ; i < concur_listener_num ; i++) {
+			ret = ret & PostAccept();
+		}
+
+		return ret;
 	}
 
 protected:

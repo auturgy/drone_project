@@ -64,15 +64,20 @@ bool server_ctrl::init(){
 	for( i = 0 ; i < MAX_SESSION_COUNT ; i++ )
 	{
 		boost::shared_ptr<session> ss_ptr = boost::make_shared<session>(ios_, i);
-		//session_list_.push_back(ss_ptr);
-		//session_queue_.push_back(i);
-		session_new_list_.push(ss_ptr);
+
+		session_list_.push_back(ss_ptr);
+		session_queue_.push(i);
+
+		//session_new_list_.push(ss_ptr);
 	}
 
 	for( i = 0; i < PACKET_POOL_COUNT ; i++ )
 	{
-		boost::shared_ptr<char[]> packet_ptr = boost::make_shared<char[MAX_PACKET_SIZE]>();
-		packet_pool_.push(packet_ptr);
+		boost::shared_ptr<PKT_UNIT> pkt_unit_ptr = boost::make_shared<PKT_UNIT>(i);
+		//packet_pool_.push(packet_ptr);
+
+		packet_list_.push_back(pkt_unit_ptr);
+		packet_queue_.push(i);
 	}
 
 	return true;
@@ -98,12 +103,38 @@ bool server_ctrl::start() {
 
 	Logger::info() << "server_ctrl::start" << std::endl;
 	
+	
+#ifdef _SINGLE_THREAD_	
+	
 	// run listener
-	add_listener(DEFAULT_PORT_NUMBER);
+	add_listener(DEFAULT_PORT_NUMBER, 1);
 
-	Logger::info() << "Server is running" << std::endl;
+	Logger::info() << "Server is running in single-thread mode" << std::endl;
+
 	// run io service
 	ios_.run();	
+
+#else
+
+	std::size_t threads_cnt = get_number_of_process();
+	boost::thread_group tg;
+
+	add_listener(DEFAULT_PORT_NUMBER, threads_cnt);
+
+	Logger::info() << "Server is running in multi-thread mode" << std::endl;
+
+	for(std::size_t i = 0 ; i < threads_cnt ; i ++) {
+		tg.create_thread(
+			boost::bind(
+				&boost::asio::io_service::run, boost::ref(ios_)
+			)
+		);	
+	}
+
+	ios_.run();	
+	tg.join_all();
+
+#endif 
 
 	return true;
 } // end of start()
@@ -124,42 +155,43 @@ bool server_ctrl::stop() {
 
 // allocate new session for incoming connection
 //////////////////////////////////////////////////////////////////
-boost::shared_ptr<session> server_ctrl::alloc_session() {
+boost::shared_ptr<session>& server_ctrl::alloc_session() {
 
-	/*
 	// update session manager 
-	unsigned short session_id = session_queue_.front();
-	Logger::info() << "allocate session, ID = " << session_id << std::endl;
-	session_queue_.pop_front();									// redundant 
-	
+	unsigned short session_id;
+	session_queue_.pop(session_id);
+
 	// session statement must be SS_CLOSE 
 	assert(session_list_[session_id].get()->get_session_stat() == SS_CLOSE);
-
 	session_list_[session_id].get()->set_waiting_mode();
 
 	return session_list_[session_id];
-	*/
-	boost::shared_ptr<session> ss_ptr = session_new_list_.pop();
+
+/*
+	boost::shared_ptr<session>& ss_ptr = session_new_list_.pop();
 
 	Logger::info() << "allocate session, ID = " << ss_ptr.get()->session_id() << std::endl;
 
 	// session statement must be SS_CLOSE 
 	assert(ss_ptr.get()->get_session_stat() == SS_CLOSE);
-	ss_ptr.get()->set_waiting_mode();
+	ss_ptr.get()->set_waiting_mode();	
 
 	return ss_ptr;
+*/
 } // end of alloc_session()  
 
 
 // when connection is closed 
 //////////////////////////////////////////////////////////////////
-void server_ctrl::release_session( boost::shared_ptr<session> ss_ptr ) {
+void server_ctrl::release_session( unsigned short session_id ) {
 
-	Logger::info() << "release session id: " << ss_ptr.get()->session_id() << std::endl;
-
+	Logger::info() << "release session, ID: " << session_id << std::endl;
+/*
 	ss_ptr.get()->shutdown();
 	session_new_list_.push(ss_ptr);
-
+*/
+	session_list_[session_id]->shutdown();
+	session_queue_.push(session_id);
 } // end of release_session()  
 
 /*
@@ -177,33 +209,35 @@ void server_ctrl::release_session( unsigned short session_id ) {
 
 // allocate a new packet for receive/process/send operation in session 
 //////////////////////////////////////////////////////////////////
-boost::shared_ptr<char[]> server_ctrl::alloc_packet() {
+boost::shared_ptr<PKT_UNIT>& server_ctrl::alloc_packet() {
 
 	Logger::info() << "allocate packet" << std::endl;
 
-	boost::shared_ptr<char[]> packet_ptr = packet_pool_.pop();
+	// update session manager 
+	unsigned short pkt_unit_id;
+	packet_queue_.pop(pkt_unit_id);
 
-	return packet_ptr;
+	return packet_list_[pkt_unit_id];
+/*
+	return packet_pool_.pop();
+*/
 } // end of alloc_packet()  
 
 
 // released packet get back to packet pool  
 //////////////////////////////////////////////////////////////////
-void server_ctrl::release_packet( boost::shared_ptr<char[]> packet_ptr) {
+void server_ctrl::release_packet( unsigned short packet_unit_id ) {
 
 	Logger::info() << "release packet" << std::endl;
 
-	packet_ptr.get()[0] = 0x00; // kind of init 
-
-	packet_pool_.push(packet_ptr);
-
-	//packet_ptr = nullptr;
+	//-> problem occurs here!!!! packet_ptr.get()[0] = 0x00; // kind of init 
+	packet_queue_.push(packet_unit_id);
 
 } // end of release_packet() 
 
 // add listener
 //////////////////////////////////////////////////////////////////
-void server_ctrl::add_listener(unsigned short port_num){
+void server_ctrl::add_listener(unsigned short port_num, std::size_t concur_listener_num ){
 
 	Logger::info() << "server_ctrl::add_listener (port:" << port_num <<") - BEGIN" << std::endl;
 
@@ -217,7 +251,7 @@ void server_ctrl::add_listener(unsigned short port_num){
 	}
 
 	listeners_[port_num] = boost::make_shared<tcp_listener>(boost::ref(ios_), port_num);
-	listeners_[port_num].get()->start_listening();
+	listeners_[port_num].get()->start_listening(concur_listener_num);
 }
 
 
