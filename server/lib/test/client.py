@@ -69,8 +69,8 @@ def wrong_packet_endurance_test():
 		s.close();
 		print ("Socket is cloesd.");
 
-#server_stress_test();
-wrong_packet_endurance_test();
+server_stress_test();
+#wrong_packet_endurance_test();
 
 
 
