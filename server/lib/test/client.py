@@ -14,7 +14,7 @@ protocol_id = 1;
 # data
 packet_data = '0123456789';
 packet_data1 = '01234567890123456789';
-packet_data2 = '01234567890abcdefghijklmnopqrstuvwxyz'; #36
+packet_data2 = '01234567890abcdefghijklmnopqrstuvwxyz'; #37
 
 # PACKET to server 
 packeted_data1 = struct.pack('@HH10s', protocol_id, 4+len(packet_data), packet_data);
@@ -22,7 +22,7 @@ packeted_data2 = struct.pack('@HH20s', protocol_id, 4+len(packet_data1), packet_
 packeted_data3 = packeted_data1 + packeted_data2;
 packeted_data4 = struct.pack('@HH37s', protocol_id, 4+len(packet_data2), packet_data2);
 
-def server_stress_test():
+def server_stress_test_with_protocol():
 	# test loop for connection and disconnection 
 	for i in range(20000):	
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
@@ -37,11 +37,14 @@ def server_stress_test():
 			data = s.recv(size);
 			print(repr(data));
 	
+			# two packets together 
 			s.send(packeted_data3);	
 			data = s.recv(size);
 			print(repr(data));
 
+			# separate packet test
 			s.send(packeted_data4[0:10]);	
+			time.sleep(0.01);
 			s.send(packeted_data4[10:]);	
 			data = s.recv(size);
 			print(repr(data));
@@ -50,7 +53,7 @@ def server_stress_test():
 		s.close();
 		print ("Socket is cloesd.");
 
-def wrong_packet_endurance_test():
+def server_endurance_test_with_no_protocol():
 	# test loop for connection and disconnection 
 	for i in range(20000):	
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
@@ -69,8 +72,8 @@ def wrong_packet_endurance_test():
 		s.close();
 		print ("Socket is cloesd.");
 
-server_stress_test();
-#wrong_packet_endurance_test();
+server_stress_test_with_protocol();
+#server_endurance_test_with_no_protocol();
 
 
 

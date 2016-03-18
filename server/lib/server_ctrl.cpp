@@ -74,7 +74,6 @@ bool server_ctrl::init(){
 	for( i = 0; i < PACKET_POOL_COUNT ; i++ )
 	{
 		boost::shared_ptr<PKT_UNIT> pkt_unit_ptr = boost::make_shared<PKT_UNIT>(i);
-		//packet_pool_.push(packet_ptr);
 
 		packet_list_.push_back(pkt_unit_ptr);
 		packet_queue_.push(i);
@@ -159,7 +158,7 @@ boost::shared_ptr<session>& server_ctrl::alloc_session() {
 
 	// update session manager 
 	unsigned short session_id;
-	session_queue_.pop(session_id);
+	assert(session_queue_.pop(session_id));
 
 	// session statement must be SS_CLOSE 
 	assert(session_list_[session_id].get()->get_session_stat() == SS_CLOSE);
@@ -167,17 +166,6 @@ boost::shared_ptr<session>& server_ctrl::alloc_session() {
 
 	return session_list_[session_id];
 
-/*
-	boost::shared_ptr<session>& ss_ptr = session_new_list_.pop();
-
-	Logger::info() << "allocate session, ID = " << ss_ptr.get()->session_id() << std::endl;
-
-	// session statement must be SS_CLOSE 
-	assert(ss_ptr.get()->get_session_stat() == SS_CLOSE);
-	ss_ptr.get()->set_waiting_mode();	
-
-	return ss_ptr;
-*/
 } // end of alloc_session()  
 
 
@@ -186,26 +174,12 @@ boost::shared_ptr<session>& server_ctrl::alloc_session() {
 void server_ctrl::release_session( unsigned short session_id ) {
 
 	Logger::info() << "release session, ID: " << session_id << std::endl;
-/*
-	ss_ptr.get()->shutdown();
-	session_new_list_.push(ss_ptr);
-*/
+
 	session_list_[session_id]->shutdown();
-	session_queue_.push(session_id);
+	assert(session_queue_.push(session_id));
+
 } // end of release_session()  
 
-/*
-// when connection is closed 
-//////////////////////////////////////////////////////////////////
-void server_ctrl::release_session( unsigned short session_id ) {
-
-	Logger::info() << "release session, ID = " << session_id << std::endl;
-
-	session_list_[session_id].get()->shutdown();
-	session_queue_.push_back(session_id);
-
-} // end of release_session()
-*/
 
 // allocate a new packet for receive/process/send operation in session 
 //////////////////////////////////////////////////////////////////
@@ -215,12 +189,10 @@ boost::shared_ptr<PKT_UNIT>& server_ctrl::alloc_packet() {
 
 	// update session manager 
 	unsigned short pkt_unit_id;
-	packet_queue_.pop(pkt_unit_id);
+	assert(packet_queue_.pop(pkt_unit_id));
 
 	return packet_list_[pkt_unit_id];
-/*
-	return packet_pool_.pop();
-*/
+
 } // end of alloc_packet()  
 
 
@@ -230,8 +202,7 @@ void server_ctrl::release_packet( unsigned short packet_unit_id ) {
 
 	Logger::info() << "release packet" << std::endl;
 
-	//-> problem occurs here!!!! packet_ptr.get()[0] = 0x00; // kind of init 
-	packet_queue_.push(packet_unit_id);
+	assert(packet_queue_.push(packet_unit_id));
 
 } // end of release_packet() 
 
