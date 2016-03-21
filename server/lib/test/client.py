@@ -2,6 +2,7 @@ import socket;
 import time;
 import struct; 
 
+#host = '192.168.1.101';
 host = 'localhost';
 port = 31400;
 size = 1024;
