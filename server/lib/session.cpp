@@ -36,7 +36,7 @@ bool session::open() {
 //////////////////////////////////////////////////////////////////
 void session::shutdown() {
 
-	Logger::info() << "session::shutdown() - BEGIN (ID:" << session_id_ <<")" <<std::endl;
+	Logger::info() << "session::shutdown (ID:" << session_id_ <<")" <<std::endl;
 
 	// need to fix 
 	//try {
@@ -56,8 +56,6 @@ void session::shutdown() {
 		rcv_buff_ = nullptr;
 	}
 
-	Logger::info() << "Session is shut down (ID:" << session_id_ <<")" << std::endl;
-
 } // end of shutdonw()
 
 
@@ -65,7 +63,7 @@ void session::shutdown() {
 //////////////////////////////////////////////////////////////////
 bool session::post_recv() {
 
-	Logger::info() << "session::post_recv() - BEGIN (ID:" << session_id_ <<")" << std::endl;
+	//Logger::info() << "session::post_recv() - BEGIN (ID:" << session_id_ <<")" << std::endl;
 
 	if(rcv_buff_ == nullptr) {
 		rcv_buff_ = &server_ctrl::get().alloc_packet();
@@ -84,8 +82,6 @@ bool session::post_recv() {
 					boost::asio::placeholders::bytes_transferred ) 
 	);
 
-	Logger::info() << "Session is ready to read (ID:" << session_id_ << ")" << std::endl;
-
 	return true;
 } // end of post_recv()
 
@@ -93,7 +89,7 @@ bool session::post_recv() {
 //////////////////////////////////////////////////////////////////
 bool session::post_recv(unsigned short start) {
 
-	Logger::info() << "session::post_recv() - start: " << start << "(ID:" << session_id_ << ")" << std::endl;
+	//Logger::info() << "session::post_recv() - start: " << start << "(ID:" << session_id_ << ")" << std::endl;
 
 	// socket has to be opened first before doing this. 
 	if(!socket().is_open()) return false;
@@ -108,8 +104,6 @@ bool session::post_recv(unsigned short start) {
 					boost::asio::placeholders::bytes_transferred ) 
 	);
 
-	Logger::info() << "Session is ready to read" << std::endl;
-
 	return true;
 } // end of post_recv()
 
@@ -122,11 +116,11 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 	{
 		if( error == boost::asio::error::eof )
 		{
-			Logger::info() << "remote peer closed the connection (ID: " << session_id_ << ")"  << std::endl;
+			Logger::warning() << "remote peer closed the connection (ID: " << session_id_ << ")"  << std::endl;
 		}
 		else 
 		{
-			Logger::info() << "socket error is occured!!! (ID: " << session_id_ << ")" << std::endl;
+			Logger::warning() << "socket error is occured!!! (ID: " << session_id_ << ")" << std::endl;
 		}
 
 		boost::shared_ptr<session> this_ss_ptr = get();
@@ -134,7 +128,7 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 	}
 	else
 	{
-		Logger::info() << "session::handle_receive() bytes_transferred = " << bytes_transferred << std::endl;
+		//Logger::info() << "session::handle_receive() bytes_transferred = " << bytes_transferred << std::endl;
 
 #ifdef _TEST_UNDER_NO_PROTOCOL_
 
@@ -195,7 +189,7 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 //////////////////////////////////////////////////////////////////
 bool session::post_send(const char* data, const unsigned short size) {
 
-	Logger::info() << "session::post_send() - BEGIN (ID:" << session_id_ <<")" << std::endl;
+	//Logger::info() << "session::post_send() - BEGIN (ID:" << session_id_ <<")" << std::endl;
 
 	// socket has to be opened first before doing this. 
 	if(!socket().is_open()) return false;
@@ -225,7 +219,7 @@ void session::handle_send(const boost::system::error_code& error, std::size_t by
 void session::process_packet(const char* data, const unsigned short size) {
 
 	/* example: echo server */
-	Logger::info() << "session::process_packet()" << std::endl;
+	//Logger::info() << "session::process_packet()" << std::endl;
 
 	
 	boost::shared_ptr<PKT_UNIT> *buff =  &server_ctrl::get().alloc_packet();

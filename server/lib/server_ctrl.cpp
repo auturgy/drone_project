@@ -185,7 +185,7 @@ void server_ctrl::release_session( unsigned short session_id ) {
 //////////////////////////////////////////////////////////////////
 boost::shared_ptr<PKT_UNIT>& server_ctrl::alloc_packet() {
 
-	Logger::info() << "allocate packet" << std::endl;
+	//Logger::info() << "allocate packet" << std::endl;
 
 	// update session manager 
 	unsigned short pkt_unit_id;
@@ -200,7 +200,7 @@ boost::shared_ptr<PKT_UNIT>& server_ctrl::alloc_packet() {
 //////////////////////////////////////////////////////////////////
 void server_ctrl::release_packet( unsigned short packet_unit_id ) {
 
-	Logger::info() << "release packet" << std::endl;
+	//Logger::info() << "release packet" << std::endl;
 
 	assert(packet_queue_.push(packet_unit_id));
 
