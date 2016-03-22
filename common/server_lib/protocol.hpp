@@ -1,18 +1,30 @@
 #pragma once 
 
+// #defines
+//////////////////////////////////////////////////////////////////
+//#define _SIMPLE_ECHO_SERVER_
+
+
 // packet header structure
 //////////////////////////////////////////////////////////////////
+#ifndef _SIMPLE_ECHO_SERVER_
 struct PACKET_HEADER
 {
 	unsigned short id_;
 	unsigned short size_;										// packet size including packet header size 
 };
+#endif /* not _SIMPLE_ECHO_SERVER_ */
 
-// consts
+// const
 //////////////////////////////////////////////////////////////////
 const unsigned short MAX_RECEIVE_BUFFER_LEN = 512;				// how about MAX MTU size 1500? 
+
+#ifdef _SIMPLE_ECHO_SERVER_
+const unsigned short MAX_PACKET_SIZE = MAX_RECEIVE_BUFFER_LEN;
+#else /* _SIMPLE_ECHO_SERVER_ */
 const unsigned short PACKET_HEADER_SIZE = sizeof(PACKET_HEADER);
 const unsigned short MAX_PACKET_SIZE = PACKET_HEADER_SIZE + MAX_RECEIVE_BUFFER_LEN;
+
 
 // protocols 
 //
@@ -46,7 +58,7 @@ struct PKT_REQ_TEST : public PACKET_HEADER
 	char buffer_ [MAX_RECEIVE_BUFFER_LEN];
 };
 
-
+#endif /* _SIMPLE_ECHO_SERVER_ */
 
 
 // end of file 
