@@ -5,7 +5,7 @@
 #include <boost/lexical_cast.hpp>
 
 
-// get the number of process on server 
+// singletone implementation
 //////////////////////////////////////////////////////////////////
 std::unique_ptr<server_ctrl> server_ctrl::instance_;
 
@@ -118,7 +118,7 @@ bool server_ctrl::start() {
 	std::size_t threads_cnt = get_number_of_process();
 	boost::thread_group tg;
 
-	add_listener(DEFAULT_PORT_NUMBER, threads_cnt);
+	add_listener(DEFAULT_PORT_NUMBER, MAX_SESSION_COUNT);
 
 	Logger::info() << "Server is running in multi-thread mode" << std::endl;
 
@@ -168,6 +168,24 @@ boost::shared_ptr<session>& server_ctrl::alloc_session() {
 
 } // end of alloc_session()  
 
+// allocate new session for incoming connection
+//////////////////////////////////////////////////////////////////
+boost::shared_ptr<session>* server_ctrl::alloc_session_p() {
+
+	// update session manager 
+	unsigned short session_id;
+	if(!session_queue_.pop(session_id)){
+		return nullptr;
+	}
+	
+	// session statement must be SS_CLOSE 
+	assert(session_list_[session_id].get()->get_session_stat() == SS_CLOSE);
+	session_list_[session_id].get()->set_waiting_mode();
+
+	return &session_list_[session_id];
+
+} // end of alloc_session()  
+
 
 // when connection is closed 
 //////////////////////////////////////////////////////////////////
@@ -175,9 +193,11 @@ void server_ctrl::release_session( unsigned short session_id ) {
 
 	Logger::info() << "release session, ID: " << session_id << std::endl;
 
+	unsigned short port = session_list_[session_id]->port();
 	session_list_[session_id]->shutdown();
-	assert(session_queue_.push(session_id));
+	//assert(session_queue_.push(session_id));
 
+	listeners_[port].get()->PostAccept(&session_list_[session_id]);	
 } // end of release_session()  
 
 

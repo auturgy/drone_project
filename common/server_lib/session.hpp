@@ -29,14 +29,18 @@ public:
 		return session_id_;
 	}
 
+	unsigned short port() {
+		return port_;
+	}
+
 	unsigned short get_session_stat(){
-		return session_stat_.load(boost::memory_order_acquire);;
+		return session_stat_.load(boost::memory_order_acquire);
 	}
 	void set_waiting_mode(){
 		set_session_stat(SS_WAITING);
 	}
 
-	bool open();												// initailization after socket is on
+	bool open(unsigned short port);												// initailization after socket is on
 	void shutdown();
 
 	bool post_recv();											// preparation for receiving data from client 
@@ -66,6 +70,7 @@ protected:
 
 	boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
 	unsigned short session_id_;									// max_num: 65,535
+	unsigned short port_;
 
 	boost::atomic<unsigned short> session_stat_;
 

@@ -30,7 +30,8 @@ public:
 	virtual bool start();										// start server
 	bool stop();												// stop server
 
-	boost::shared_ptr<session>& alloc_session();					// allocate new session for incoming connection
+	boost::shared_ptr<session>& alloc_session();				// allocate new session for incoming connection
+	boost::shared_ptr<session>* alloc_session_p();
 	// when connection is closed
 	//void release_session( boost::shared_ptr<session> &ss_ptr );
 	void release_session( unsigned short session_id );		

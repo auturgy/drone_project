@@ -1,12 +1,16 @@
 #include "session.hpp"
 #include "server_ctrl.hpp"
 #include <boost/make_shared.hpp>
+#ifndef _SIMPLE_ECHO_SERVER_
+#include "protocol.hpp"
+#endif /* _SIMPLE_ECHO_SERVER_ */
 
 // session constructor
 //////////////////////////////////////////////////////////////////
 session::session( boost::asio::io_service& io_service, unsigned short session_id)
 	: strand_(boost::ref(io_service))
 	, session_id_(session_id)
+	, port_(0)
 	, session_stat_(SS_CLOSE)
 	, rcv_buff_start_(0)
 {
@@ -18,14 +22,14 @@ session::session( boost::asio::io_service& io_service, unsigned short session_id
 
 // open session with client  
 //////////////////////////////////////////////////////////////////
-bool session::open() {
+bool session::open(unsigned short port) {
 
 	// socket has to be opened first before doing this. 
 	if(!socket().is_open()) return false;
 
 	// update session statement into SS_OPEN
 	set_session_stat(SS_OPEN);
-	
+	port_ = port;
 	Logger::info() << "Session is sucessfully open ID:" << session_id_ <<")"<< std::endl;
 
 	return true;
@@ -130,12 +134,12 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 	{
 		//Logger::info() << "session::handle_receive() bytes_transferred = " << bytes_transferred << std::endl;
 
-#ifdef _TEST_UNDER_NO_PROTOCOL_
+#ifdef _SIMPLE_ECHO_SERVER_
 
 		post_send( rcv_buff_->get()->ptr_, bytes_transferred );
 		post_recv();
 
-#else /* _TEST_UNDER_NO_PROTOCOL_ */
+#else /* _SIMPLE_ECHO_SERVER_ */
 
 		unsigned short packet_size_received = rcv_buff_start_ + bytes_transferred;
 		unsigned short read_data = 0;
