@@ -127,7 +127,6 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 			Logger::warning() << "socket error is occured!!! (ID: " << session_id_ << ")" << std::endl;
 		}
 
-		boost::shared_ptr<session> this_ss_ptr = get();
 		server_ctrl::get().release_session( session_id_ );
 	}
 	else
@@ -168,7 +167,10 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 
 		if(packet_size_received) {
 
-			assert(packet_size_received < MAX_PACKET_SIZE);
+			if(packet_size_received > MAX_PACKET_SIZE) {
+				server_ctrl::get().release_session( session_id_ );
+				return;
+			}
 
 			boost::shared_ptr<PKT_UNIT> *buff =  &server_ctrl::get().alloc_packet();
 			std::memcpy(buff->get()->ptr_, &rcv_buff_->get()->ptr_[read_data], packet_size_received );
