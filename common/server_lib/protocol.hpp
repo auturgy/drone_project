@@ -48,10 +48,10 @@ const unsigned short REQ_MAX = 65535;
 ///////////`///////////////////////////////////////////////////////
 struct PKT_REQ_TEST : public PACKET_HEADER
 {
-	void Init()
+	void init()
 	{
 		id_ = REQ_TEST;
-		size_ = sizeof(PKT_REQ_TEST);							// header + size of data
+		size_ = sizeof(PACKET_HEADER);							// header + size of data
 		//memset( buffer_, 0, MAX_RECEIVE_BUFFER_LEN );
 	}
 
