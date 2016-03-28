@@ -1,0 +1,4 @@
+*.o
+*swp
+main_server
+obj
