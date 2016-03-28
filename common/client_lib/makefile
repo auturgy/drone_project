@@ -6,8 +6,8 @@ LFLAGS =
 DEBUG = -g -D_DEBUG_
 FLAGS = -c -std=c++11 -Wall -pedantic $(DEBUG)
 CC = g++-5
-LIBS = -lm -ldl -lpthread -L/usr/local/Cellar/boost/1.60.0_1/lib -lboost_regex-mt -lboost_filesystem-mt -lboost_thread-mt -lboost_system-mt
-INCLUDES = -I/usr/local/Cellar/boost/1.60.0_1/include/
+LIBS = -lm -ldl -lpthread -L/usr/local/Cellar/boost/1.60.0/lib -lboost_regex -lboost_filesystem -lboost_thread -lboost_system -lboost_atomic
+INCLUDES = -I/usr/local/Cellar/boost/1.60.0/include/
 
 all: $(EXEC)
 

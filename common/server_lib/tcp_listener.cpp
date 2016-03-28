@@ -9,7 +9,7 @@ bool tcp_listener::PostAccept(boost::shared_ptr<session>* ss_ptr) {
 		return false;
 	}
 
-	Logger::info() << "tcp_listener::PostAccept() - BEGIN" << std::endl;
+	Logger::info() << "tcp_listener::PostAccept()" << std::endl;
 
 	if(ss_ptr == nullptr){
 		ss_ptr = server_ctrl::get().alloc_session_p();

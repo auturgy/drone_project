@@ -12,7 +12,7 @@
 // const
 //////////////////////////////////////////////////////////////////
 const unsigned short SESSION_NUM_LIMIT = 65535;					// maximum of unsigned short
-const unsigned short MAX_SESSION_COUNT = 100;					// shold be smaller than SESSION_NUM_LIMIT						// default port number
+const unsigned short MAX_SESSION_COUNT = 500;					// shold be smaller than SESSION_NUM_LIMIT						// default port number
 const unsigned short MAX_BUFF_NUM_ON_EACH_SESSION = 6;			// (recv + send) * 3 = 6
 const unsigned short PACKET_POOL_COUNT = MAX_SESSION_COUNT*2;	// maximum packet number in PACKET POOL
 

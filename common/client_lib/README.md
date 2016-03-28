@@ -16,13 +16,13 @@ This is client library for my drone project. For multi-platform use, I use Boost
 
 ### build environment  
 
-To get rid of this problem, [Docker](https://www.docker.com/) will be adapted. However, this will be needed if you are not familiar with docker. 
+To get rid of the problem related to build environment, [Docker](https://www.docker.com/) will be adapted.
 
-Based on my experience, most of problems come from link error in makefiles. In this client library, you have to add belows in makefile in order to avoid build error. 
+Based on my experience, most of problems come from link error in a makefile. In this client library, you have to add belows in makefile in order to avoid build error. 
 
 	LIBS = -lm -ldl - lpthread -lboost_atomic  
 	
-In addition to it, all boost links should be used with "-mt". For example, you use -lboost_regex instead of -lboost_regex-mt in default raspbian.
+In addition to it, all boost links should be used without "-mt". For example, you use -lboost_regex instead of -lboost_regex-mt in default raspbian.
 
 
 ## License   

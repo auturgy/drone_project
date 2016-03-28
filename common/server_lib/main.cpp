@@ -1,3 +1,5 @@
+#ifdef _SERVER_TEST_
+
 #include "server_ctrl.hpp"
 
 
@@ -15,3 +17,5 @@ int main() {
 	getchar();
 	return 0;
 }
+
+#endif /* _SERVER_TEST_ */

@@ -67,8 +67,6 @@ bool server_ctrl::init(){
 
 		session_list_.push_back(ss_ptr);
 		session_queue_.push(i);
-
-		//session_new_list_.push(ss_ptr);
 	}
 
 	for( i = 0; i < PACKET_POOL_COUNT ; i++ )
@@ -90,7 +88,23 @@ bool server_ctrl::init( const std::vector< boost::shared_ptr < session > >& sess
 {
 	Logger::info() << "Server Init - To process instances inhereted from session class" << std::endl;
 
-	// add codes to handle this~~~!!! 
+	int i;
+
+	assert(max_num <= MAX_SESSION_COUNT);
+
+	for( i = 0 ; i < max_num ; i++ )
+	{
+		session_list_.push_back(sessions[i]);
+		session_queue_.push(i);
+	}
+
+	for(i = 0; i < PACKET_POOL_COUNT ; i++ )
+	{
+		boost::shared_ptr<PKT_UNIT> pkt_unit_ptr = boost::make_shared<PKT_UNIT>(i);
+
+		packet_list_.push_back(pkt_unit_ptr);
+		packet_queue_.push(i);
+	}
 
 	return true;
 } // end of init()
