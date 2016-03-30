@@ -1,3 +1,5 @@
+#ifdef _CLIENT_TEST_
+
 #include "connection.hpp"
 
 int main(int argc, char* argv[]) {
@@ -67,4 +69,5 @@ int main(int argc, char* argv[]) {
 	return 1;
 }
 
+#endif /* _CLIENT_TEST_ */
 
