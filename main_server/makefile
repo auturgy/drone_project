@@ -20,7 +20,11 @@ LIBS 		:= -lm -ldl -lpthread -L/usr/local/Cellar/boost/1.60.0/lib -lboost_regex 
 INCLUDES 	:= -I/usr/local/Cellar/boost/1.60.0/include/
 
 
-all: $(EXEC)
+all: $(OBJ_DIR) $(EXEC)
+
+
+$(OBJ_DIR):
+	@mkdir -p $@
 
 
 $(EXEC) : $(OBJECTS) $(LIB_OBJECTS)
