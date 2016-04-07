@@ -1,4 +1,10 @@
 ## Introduction  
+
+## how to deploy on Raspberry Pi II/III
+
+## 드론 조립 및 개발  
+
+## Introduction  
   
 This is client library for my drone project. For multi-platform use, I use Boost as core engine.
 
