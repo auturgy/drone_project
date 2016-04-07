@@ -21,17 +21,22 @@ public:
 	}
 
 	bool init();
-
 	bool shutdown();											// shutdown socket
-	void connect(boost::asio::ip::tcp::endpoint endpoint);		// try to connect to server
-	
+
+	// TCP/IP ////////////////////////////////////////////////////
+	void connect(boost::asio::ip::tcp::endpoint endpoint);		// try to connect to server	
 	bool post_send(const char* data, const unsigned short size);// send data to client
 	bool post_send(boost::shared_ptr<PKT_UNIT>& packet, const unsigned short size);// send data to client
+
+	// UDP/IP ////////////////////////////////////////////////////
+	bool udp_on(std::string& addr, unsigned short port);
+	bool post_udp_send(const char* data, const unsigned short size);// send data to client
+	bool post_udp_send(boost::shared_ptr<PKT_UNIT>& packet, const unsigned short size);// send data to client
 
 	// packet pool management 
 	boost::shared_ptr<PKT_UNIT>& alloc_packet();				//	allocate a packet
 	void release_packet( unsigned short packet_unit_id );		//	release a packet 
-
+	
 protected:
 	connection();
 	
@@ -42,6 +47,7 @@ protected:
 		connection_stat_.store(new_conn_stat, boost::memory_order_release);
 	}
 
+	// TCP/IP ////////////////////////////////////////////////////
 	bool post_recv();											// preparation for receiving data from client 
 	bool post_recv(unsigned short start);						// adjust packet 
 
@@ -53,6 +59,11 @@ protected:
 
 	// prcoess pacekt 
 	virtual void process_packet(const char* data, const unsigned short size);
+
+	// UDP/IP ////////////////////////////////////////////////////
+	void post_udp_recv();
+	virtual void handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred );
+	void handle_udp_send(const boost::system::error_code& error, std::size_t bytes_transferred);
 	
 //---------------------- Member Variables ----------------------//
 public: 
@@ -62,8 +73,15 @@ protected:
 	boost::asio::io_service::work work_;						// asio work
 
 	boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;	// socket 	
+	boost::shared_ptr<boost::asio::ip::udp::socket> udp_socket_;// udp socket 
+
 	boost::thread thread_;
 	boost::atomic<unsigned short> connection_stat_;
+
+	unsigned short udp_port_;
+	std::string udp_addr_;
+	boost::shared_ptr<PKT_UNIT> *rcv_udp_buff_;
+	boost::asio::ip::udp::endpoint sender_endpoint_;
 
 	// packet manager 
 	std::vector<boost::shared_ptr<PKT_UNIT>> packet_list_;		// all packet instances 

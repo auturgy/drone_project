@@ -2,18 +2,29 @@
 
 #include "connection.hpp"
 
-int main(int argc, char* argv[]) {
+// upd connection test 
+//////////////////////////////////////////////////////////////////
+int udp_test(std::string& addr) {
+	connection::get().init();
+	connection::get().udp_on(addr, DEFAULT_PORT_NUMBER);
+
+	std::string test = "test";
+	connection::get().post_udp_send(test.c_str(),test.length());
+
+	std::getchar();
+
+	connection::get().shutdown();
+
+	return 1;
+}
+
+// tcp connection test 
+//////////////////////////////////////////////////////////////////
+int tcp_test(std::string& addr) {
 
 	const unsigned short MAX_MESSAGE_LEN = 100;
 	char szInputMessage[MAX_MESSAGE_LEN * 2] = {0,};
-	std::string addr;
-
-	if( argc > 1) {
-		addr = argv[1]; 
-	} else {
-		addr = "127.0.0.1";
-	}
-
+	
 	auto endpoint = boost::asio::ip::tcp::endpoint( 
 						//boost::asio::ip::address::from_string("192.168.1.101"), 
 						boost::asio::ip::address::from_string(addr), 
@@ -66,6 +77,27 @@ int main(int argc, char* argv[]) {
 		std::cout << "[Input] "; 
 	} while(std::cin.getline( szInputMessage, MAX_MESSAGE_LEN) );
 
+	return 1;
+}
+
+// main
+//////////////////////////////////////////////////////////////////
+int main(int argc, char* argv[]) {
+
+	bool is_udp_test = true;
+	std::string addr;
+
+	if( argc > 1) {
+		addr = argv[1]; 
+	} else {
+		addr = "127.0.0.1";
+	}
+
+	if(is_udp_test)
+		udp_test(addr);
+	else 
+		tcp_test(addr);
+	
 	return 1;
 }
 
