@@ -412,7 +412,6 @@ bool connection::post_udp_send(boost::shared_ptr<PKT_UNIT>& packet, const unsign
 //////////////////////////////////////////////////////////////////
 void connection::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	process_udp_packet();
 	std::cout << "[received] " << rcv_udp_buff_->get()->ptr_ << std::endl;
 
 	// echo as an example 
