@@ -1,19 +1,22 @@
 #ifdef _CLIENT_TEST_
 
 #include "connection.hpp"
+typedef singleton<connection> conn_singleton; 
 
 // upd connection test 
 //////////////////////////////////////////////////////////////////
 int udp_test(std::string& addr) {
-	connection::get().init();
-	connection::get().udp_on(addr, DEFAULT_PORT_NUMBER);
+
+	//conn_singleton::get.init();
+	conn_singleton::get().init();
+	conn_singleton::get().udp_on(addr, DEFAULT_PORT_NUMBER);
 
 	std::string test = "test";
-	connection::get().post_udp_send(test.c_str(),test.length());
+	conn_singleton::get().post_udp_send(test.c_str(),test.length());
 
 	std::getchar();
 
-	connection::get().shutdown();
+	conn_singleton::get().shutdown();
 
 	return 1;
 }
@@ -30,8 +33,8 @@ int tcp_test(std::string& addr) {
 						boost::asio::ip::address::from_string(addr), 
 						DEFAULT_PORT_NUMBER);
 
-	connection::get().init();
-	connection::get().connect(endpoint);
+	conn_singleton::get().init();
+	conn_singleton::get().connect(endpoint);
 
 	unsigned short try_connecting = 0;
 	const unsigned short MAX_TRY = 5;
@@ -40,12 +43,12 @@ int tcp_test(std::string& addr) {
 		
 		sleep(1);
 		
-		if(connection::get().get_connection_stat() == SS_CLOSE || try_connecting > MAX_TRY) {
+		if(conn_singleton::get().get_connection_stat() == SS_CLOSE || try_connecting > MAX_TRY) {
 			std::cout << "failed to connect ~!" << std::endl;
 			return 1;
 		}
 
-		if(connection::get().get_connection_stat() == SS_OPEN) {
+		if(conn_singleton::get().get_connection_stat() == SS_OPEN) {
 			std::cout << "=============================" << std::endl;
 			std::cout << "Connection is established~   " << std::endl;
 			std::cout << "=============================" << std::endl;
@@ -63,7 +66,7 @@ int tcp_test(std::string& addr) {
 
 		if(input_len){
 
-			boost::shared_ptr<PKT_UNIT>& packet = connection::get().alloc_packet();
+			boost::shared_ptr<PKT_UNIT>& packet = conn_singleton::get().alloc_packet();
 			PKT_REQ_TEST* packet_p = (PKT_REQ_TEST*)packet.get();
 
 			packet_p->init();
@@ -71,7 +74,7 @@ int tcp_test(std::string& addr) {
 			packet_p->size_ += input_len;
 
 			//std::cout << "packet_p->size_: " << packet_p->size_ << std::endl;
-			connection::get().post_send(packet, packet_p->size_);
+			conn_singleton::get().post_send(packet, packet_p->size_);
 		}
 		sleep(1);
 		std::cout << "[Input] "; 

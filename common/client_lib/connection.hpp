@@ -7,21 +7,48 @@
 //////////////////////////////////////////////////////////////////
 const unsigned short CLIENT_PACKET_POOL_COUNT = 10; 			//10 might be enough to handle PACKET_POOL_COUNT
 
+// Singleton class 
+/////////////////////////////////////////////////////////////////
+template <typename T>
+class singleton {
+protected:
+	singleton() {}
+	~singleton() {}
+
+public: 
+	static T& get() {
+		T* p = instance_.get();
+
+		if(!p) {
+			instance_.reset(new T);
+			p = instance_.get();
+		}
+
+		return *p; 
+	}
+
+private:
+	static std::unique_ptr<T> instance_;				// class instance
+};
+
+template <typename T> 
+std::unique_ptr<T> singleton<T>::instance_ = nullptr;
+
 // Server Controller Class
 //////////////////////////////////////////////////////////////////
 class connection : private boost::noncopyable {
 
 //---------------------- Member Functions ----------------------//
 public:
+	connection();
 	~connection() {}
-	static connection& get();
 
 	unsigned short get_connection_stat(){
 		return connection_stat_.load(boost::memory_order_acquire);
 	}
 
-	bool init();
-	bool shutdown();											// shutdown socket
+	virtual bool init();
+	virtual bool shutdown();											// shutdown socket
 
 	// TCP/IP ////////////////////////////////////////////////////
 	void connect(boost::asio::ip::tcp::endpoint endpoint);		// try to connect to server	
@@ -38,7 +65,6 @@ public:
 	void release_packet( unsigned short packet_unit_id );		//	release a packet 
 	
 protected:
-	connection();
 	
 	inline boost::asio::ip::tcp::socket& socket();
 
@@ -90,8 +116,6 @@ protected:
 
 	boost::shared_ptr<PKT_UNIT> *rcv_buff_;
 	unsigned short rcv_buff_start_;
-
-	static std::unique_ptr<connection> instance_;				// class instance
 };
 
 // end of file 

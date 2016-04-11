@@ -1,26 +1,6 @@
 #include "connection.hpp"
 #include <boost/make_shared.hpp>
 
-// singletone implementation
-//////////////////////////////////////////////////////////////////
-std::unique_ptr<connection> connection::instance_;
-
-
-// singletone 
-//////////////////////////////////////////////////////////////////
-connection& connection::get() {
-
-	connection *p = instance_.get();
-
-	if(!p) {
-		instance_.reset(new connection);
-		p = instance_.get();
-	}
-
-	return *p;
-} // end of get()
-
-
 // constructor 
 //////////////////////////////////////////////////////////////////
 connection::connection()
