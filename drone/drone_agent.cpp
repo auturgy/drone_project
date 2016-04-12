@@ -1,6 +1,8 @@
 #include <boost/lexical_cast.hpp>
 #include "drone_agent.hpp"
 
+typedef singleton<logger> logger_singleton; 
+
 // overriding function : handle_connect
 //////////////////////////////////////////////////////////////////
 void drone_agent::handle_connect(const boost::system::error_code& error) {
@@ -24,7 +26,7 @@ void drone_agent::process_packet(const char* data, const unsigned short size) {
 
 void drone_agent::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	std::cout << "[DRONE] " << rcv_udp_buff_->get()->ptr_ << std::endl;
+	logger_singleton::get() << rcv_udp_buff_->get()->ptr_;
 	post_udp_recv();
 }
 
@@ -45,16 +47,11 @@ int main(int argc, char* argv[]) {
 
 	agent_singleton::get().init();
 	agent_singleton::get().udp_on(addr, DEFAULT_PORT_NUMBER);
+	agent_singleton::get().start();
 
-	std::string test = "test";
-	agent_singleton::get().post_udp_send(test.c_str(),test.length());
+	//agent_singleton::get().shutdown();
 
-	std::getchar();
-
-	agent_singleton::get().shutdown();
-
-
-	return 1;
+	return 0;
 }
 
 #endif /* _DRONE_AGENT_ */
