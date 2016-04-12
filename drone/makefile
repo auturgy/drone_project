@@ -12,8 +12,8 @@ LIB_SOURCES := $(notdir $(wildcard $(LIB_SRC_DIR)/*.cpp))
 LIB_HEADERS := $(notdir $(wildcard $(LIB_SRC_DIR)/*.hpp))
 LIB_OBJECTS	:= $(addprefix $(OBJ_DIR)/, $(LIB_SOURCES:.cpp=.o)) 
 
-DEBUG 		:= -g -D_DEBUG_
-FLAGS 		:= -c -std=c++11 -Wall -pedantic $(DEBUG) -D_DRONE_AGENT_
+DEBUG 		:= -g -Wall -pedantic -D_DEBUG_ 
+FLAGS 		:= -c -std=c++11 $(DEBUG) -D_DRONE_AGENT_
 
 # for OS X
 CC 			:= g++-5
