@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils.hpp"
+#include "../utils.hpp"
 #include <boost/enable_shared_from_this.hpp>
 
 // Session Class
@@ -10,9 +10,7 @@ class session : public boost::enable_shared_from_this<session> {
 //---------------------- Member Functions ----------------------//
 public:
 	explicit session( boost::asio::io_service& io_service, unsigned short session_id);
-	virtual ~session() {
-		Logger::info() << "session destruction (ID:" << session_id_ << ")" << std::endl;
-	}
+	virtual ~session() {}
 
 	boost::shared_ptr<session> get()
     {
@@ -51,8 +49,6 @@ public:
 protected:
 	// internal function to change session statement
 	inline void set_session_stat(unsigned short new_session_stat) {	
-		Logger::info() << "Session(" << session_id_ <<") status has changed into " << new_session_stat <<std::endl;
-
 		session_stat_.store(new_session_stat, boost::memory_order_release);
 	}
 

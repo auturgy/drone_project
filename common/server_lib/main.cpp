@@ -1,18 +1,18 @@
 #ifdef _SERVER_TEST_
 
 #include "server_ctrl.hpp"
-
+typedef singleton<server_ctrl> server_singleton; 
 
 int main() {
 
 	//std::cout << "CPU number: " << server_ctrl::get().get_number_of_process() << std::endl;
 	
-	server_ctrl::get().init();
+	server_singleton::get().init();
 	
 	// pause here until server is shutdown
-	server_ctrl::get().start(); 
+	server_singleton::get().start(); 
 	
-	//server_ctrl::get().stop();
+	//server_singleton::get().stop();
 	
 	getchar();
 	return 0;

@@ -4,23 +4,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/lexical_cast.hpp>
 
-
-// singletone implementation
-//////////////////////////////////////////////////////////////////
-std::unique_ptr<server_ctrl> server_ctrl::instance_;
-
-server_ctrl& server_ctrl::get(){
-
-	server_ctrl *p = instance_.get();
-	
-	if(!p) {
-		instance_.reset(new server_ctrl);
-		p = instance_.get();
-	}
-
-	return *p;
-}
-
+typedef singleton<logger> logger_singleton; 
 
 // constructor
 //////////////////////////////////////////////////////////////////
@@ -57,7 +41,7 @@ std::size_t server_ctrl::get_number_of_process() {
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::init(){
 
-	Logger::info() << "Server init - Default session class is used to handle each connection" << std::endl;
+	logger_singleton::get().info() << "Server init - Default session class is used to handle each connection" << std::endl;
 
 	int i;
 
@@ -86,7 +70,7 @@ bool server_ctrl::init(){
 bool server_ctrl::init( const std::vector< boost::shared_ptr < session > >& sessions, 
 						const unsigned short max_num) 
 {
-	Logger::info() << "Server Init - To process instances inhereted from session class" << std::endl;
+	logger_singleton::get().info() << "Server Init - To process instances inhereted from session class" << std::endl;
 
 	int i;
 
@@ -114,7 +98,7 @@ bool server_ctrl::init( const std::vector< boost::shared_ptr < session > >& sess
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::start() {
 
-	Logger::info() << "server_ctrl::start" << std::endl;
+	logger_singleton::get().info() << "server_ctrl::start" << std::endl;
 	
 	
 #ifdef _SINGLE_THREAD_	
@@ -122,7 +106,7 @@ bool server_ctrl::start() {
 	// run listener
 	add_listener(DEFAULT_PORT_NUMBER, 1);
 
-	Logger::info() << "Server is running in single-thread mode" << std::endl;
+	logger_singleton::get().info() << "Server is running in single-thread mode" << std::endl;
 
 	// run io service
 	ios_.run();	
@@ -134,7 +118,7 @@ bool server_ctrl::start() {
 
 	add_listener(DEFAULT_PORT_NUMBER, MAX_SESSION_COUNT);
 
-	Logger::info() << "Server is running in multi-thread mode" << std::endl;
+	logger_singleton::get().info() << "Server is running in multi-thread mode" << std::endl;
 
 	for(std::size_t i = 0 ; i < threads_cnt ; i ++) {
 		tg.create_thread(
@@ -157,8 +141,8 @@ bool server_ctrl::start() {
 //////////////////////////////////////////////////////////////////
 bool server_ctrl::stop() {
 
-	//logger::info("Server is turning off");
-	Logger::info() << "Server is shutdown" << std::endl;
+	//logger_singleton::get().info("Server is turning off");
+	logger_singleton::get().info() << "Server is shutdown" << std::endl;
 
 	// do something 	
 
@@ -205,7 +189,7 @@ boost::shared_ptr<session>* server_ctrl::alloc_session_p() {
 //////////////////////////////////////////////////////////////////
 void server_ctrl::release_session( unsigned short session_id ) {
 
-	Logger::info() << "release session, ID: " << session_id << std::endl;
+	logger_singleton::get().info() << "release session, ID: " << session_id << std::endl;
 
 	unsigned short port = session_list_[session_id]->port();
 	session_list_[session_id]->shutdown();
@@ -219,7 +203,7 @@ void server_ctrl::release_session( unsigned short session_id ) {
 //////////////////////////////////////////////////////////////////
 boost::shared_ptr<PKT_UNIT>& server_ctrl::alloc_packet() {
 
-	//Logger::info() << "allocate packet" << std::endl;
+	//logger_singleton::get().info() << "allocate packet" << std::endl;
 
 	// update session manager 
 	unsigned short pkt_unit_id;
@@ -234,7 +218,7 @@ boost::shared_ptr<PKT_UNIT>& server_ctrl::alloc_packet() {
 //////////////////////////////////////////////////////////////////
 void server_ctrl::release_packet( unsigned short packet_unit_id ) {
 
-	//Logger::info() << "release packet" << std::endl;
+	//logger_singleton::get().info() << "release packet" << std::endl;
 
 	assert(packet_queue_.push(packet_unit_id));
 
@@ -244,7 +228,7 @@ void server_ctrl::release_packet( unsigned short packet_unit_id ) {
 //////////////////////////////////////////////////////////////////
 void server_ctrl::add_listener(unsigned short port_num, std::size_t concur_listener_num ){
 
-	Logger::info() << "server_ctrl::add_listener (port:" << port_num <<") - BEGIN" << std::endl;
+	logger_singleton::get().info() << "server_ctrl::add_listener (port:" << port_num <<") - BEGIN" << std::endl;
 
 	listeners_map_t::const_iterator it = listeners_.find(port_num);
 	if(it != listeners_.end()) {

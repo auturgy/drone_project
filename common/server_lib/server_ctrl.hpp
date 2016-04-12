@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "utils.hpp"
+#include "../utils.hpp"
 
 class session;
 class tcp_listener;
@@ -13,12 +13,10 @@ class server_ctrl : private boost::noncopyable {
 	//typedef std::map<unsigned short, boost::shared_prt<de>>;
 
 //---------------------- Member Functions ----------------------//
-private:
-	server_ctrl();												// constructor
-
 public:
+	server_ctrl();												// constructor
 	virtual ~server_ctrl() {}									// destructor (do nothing)
-	static server_ctrl& get();									// singleton method
+
 	std::size_t get_number_of_process();						// check the maximum number of CPUs
 
 	bool init();												// initialize server 
@@ -35,7 +33,6 @@ public:
 	// when connection is closed
 	//void release_session( boost::shared_ptr<session> &ss_ptr );
 	void release_session( unsigned short session_id );		
-
 
 	// packet pool management 
 	boost::shared_ptr<PKT_UNIT>& alloc_packet();					
@@ -66,9 +63,6 @@ protected:
 	std::vector<boost::shared_ptr<PKT_UNIT>> packet_list_;		// all packet instances 
 	typedef boost::lockfree::queue< unsigned short, boost::lockfree::capacity< PACKET_POOL_COUNT > > packet_queue_t;
 	packet_queue_t packet_queue_;								// each packet id ==> PKT_UNIT.id_
-
-private:
-	static std::unique_ptr<server_ctrl> instance_;				// server controller
 
 };
 

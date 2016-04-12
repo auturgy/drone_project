@@ -2,8 +2,11 @@
 #include "server_ctrl.hpp"
 #include <boost/make_shared.hpp>
 #ifndef _SIMPLE_ECHO_SERVER_
-#include "protocol.hpp"
+#include "../protocol.hpp"
 #endif /* _SIMPLE_ECHO_SERVER_ */
+
+typedef singleton<server_ctrl> server_singleton; 
+typedef singleton<logger> logger_singleton; 
 
 // session constructor
 //////////////////////////////////////////////////////////////////
@@ -30,7 +33,7 @@ bool session::open(unsigned short port) {
 	// update session statement into SS_OPEN
 	set_session_stat(SS_OPEN);
 	port_ = port;
-	Logger::info() << "Session is sucessfully open ID:" << session_id_ <<")"<< std::endl;
+	logger_singleton::get().info() << "Session is sucessfully open ID:" << session_id_ <<")"<< std::endl;
 
 	return true;
 } // end of open()
@@ -40,7 +43,7 @@ bool session::open(unsigned short port) {
 //////////////////////////////////////////////////////////////////
 void session::shutdown() {
 
-	Logger::info() << "session::shutdown (ID:" << session_id_ <<")" <<std::endl;
+	logger_singleton::get().info() << "session::shutdown (ID:" << session_id_ <<")" <<std::endl;
 
 	// need to fix 
 	//try {
@@ -56,7 +59,7 @@ void session::shutdown() {
 	set_session_stat(SS_CLOSE);
 
 	if(rcv_buff_ != nullptr) {
-		server_ctrl::get().release_packet(rcv_buff_->get()->id_);
+		server_singleton::get().release_packet(rcv_buff_->get()->id_);
 		rcv_buff_ = nullptr;
 	}
 
@@ -67,10 +70,10 @@ void session::shutdown() {
 //////////////////////////////////////////////////////////////////
 bool session::post_recv() {
 
-	//Logger::info() << "session::post_recv() - BEGIN (ID:" << session_id_ <<")" << std::endl;
+	//logger_singleton::get().info() << "session::post_recv() - BEGIN (ID:" << session_id_ <<")" << std::endl;
 
 	if(rcv_buff_ == nullptr) {
-		rcv_buff_ = &server_ctrl::get().alloc_packet();
+		rcv_buff_ = &server_singleton::get().alloc_packet();
 	}
 
 	rcv_buff_start_ = 0;
@@ -93,7 +96,7 @@ bool session::post_recv() {
 //////////////////////////////////////////////////////////////////
 bool session::post_recv(unsigned short start) {
 
-	//Logger::info() << "session::post_recv() - start: " << start << "(ID:" << session_id_ << ")" << std::endl;
+	//logger_singleton::get().info() << "session::post_recv() - start: " << start << "(ID:" << session_id_ << ")" << std::endl;
 
 	// socket has to be opened first before doing this. 
 	if(!socket().is_open()) return false;
@@ -120,18 +123,18 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 	{
 		if( error == boost::asio::error::eof )
 		{
-			Logger::warning() << "remote peer closed the connection (ID: " << session_id_ << ")"  << std::endl;
+			logger_singleton::get().warning() << "remote peer closed the connection (ID: " << session_id_ << ")"  << std::endl;
 		}
 		else 
 		{
-			Logger::warning() << "socket error is occured!!! (ID: " << session_id_ << ")" << std::endl;
+			logger_singleton::get().warning() << "socket error is occured!!! (ID: " << session_id_ << ")" << std::endl;
 		}
 
-		server_ctrl::get().release_session( session_id_ );
+		server_singleton::get().release_session( session_id_ );
 	}
 	else
 	{
-		//Logger::info() << "session::handle_receive() bytes_transferred = " << bytes_transferred << std::endl;
+		//logger_singleton::get().info() << "session::handle_receive() bytes_transferred = " << bytes_transferred << std::endl;
 
 #ifdef _SIMPLE_ECHO_SERVER_
 
@@ -168,14 +171,14 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 		if(packet_size_received) {
 
 			if(packet_size_received > MAX_PACKET_SIZE) {
-				server_ctrl::get().release_session( session_id_ );
+				server_singleton::get().release_session( session_id_ );
 				return;
 			}
 
-			boost::shared_ptr<PKT_UNIT> *buff =  &server_ctrl::get().alloc_packet();
+			boost::shared_ptr<PKT_UNIT> *buff =  &server_singleton::get().alloc_packet();
 			std::memcpy(buff->get()->ptr_, &rcv_buff_->get()->ptr_[read_data], packet_size_received );
 			std::memcpy(rcv_buff_->get()->ptr_, buff->get()->ptr_, packet_size_received );
-			server_ctrl::get().release_packet(buff->get()->id_);
+			server_singleton::get().release_packet(buff->get()->id_);
 
 			post_recv(packet_size_received);
 
@@ -195,7 +198,7 @@ void session::handle_receive( const boost::system::error_code& error, std::size_
 //////////////////////////////////////////////////////////////////
 bool session::post_send(const char* data, const unsigned short size) {
 
-	//Logger::info() << "session::post_send() - BEGIN (ID:" << session_id_ <<")" << std::endl;
+	//logger_singleton::get().info() << "session::post_send() - BEGIN (ID:" << session_id_ <<")" << std::endl;
 
 	// socket has to be opened first before doing this. 
 	if(!socket().is_open()) return false;
@@ -225,10 +228,10 @@ void session::handle_send(const boost::system::error_code& error, std::size_t by
 void session::process_packet(const char* data, const unsigned short size) {
 
 	/* example: echo server */
-	//Logger::info() << "session::process_packet()" << std::endl;
+	//logger_singleton::get().info() << "session::process_packet()" << std::endl;
 
 	
-	boost::shared_ptr<PKT_UNIT> *buff =  &server_ctrl::get().alloc_packet();
+	boost::shared_ptr<PKT_UNIT> *buff =  &server_singleton::get().alloc_packet();
 
 	std::memcpy(buff->get()->ptr_, data, size);
 	
@@ -238,7 +241,7 @@ void session::process_packet(const char* data, const unsigned short size) {
 	// send data received
 	post_send(buff->get()->ptr_, size);
 
-	server_ctrl::get().release_packet(buff->get()->id_);
+	server_singleton::get().release_packet(buff->get()->id_);
 	
 } // end of process_packet()
 

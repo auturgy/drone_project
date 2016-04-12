@@ -38,86 +38,91 @@ struct PKT_UNIT
 	}
 };
 
-
 // logger class
 //////////////////////////////////////////////////////////////////
-class Logger
+class logger
 {
 //---------------------- Member Functions ----------------------//	
-private:
-	Logger(std::ostream &o = std::cout):m_file(o){};
-
-	static inline Logger& get(){
-		Logger *p = instance_.get();
-	
-		if(!p) {
-			instance_.reset(new Logger);
-			p = instance_.get();
-		}
-		return *p;
-	}
-
 public:    
+	logger(std::ostream &o = std::cout):m_file(o){};
 
-	static Logger& info(){
-		Logger *p =  &get();
-		//boost::unique_lock<boost::mutex> lock(p->mtx_);
+	logger& info(){
 		
 #ifdef _DEBUG_		
-		*p << "[INFO] ";
+		m_file << "[INFO] ";
 #endif /*_DEBUG_*/
 
-		return *p;
+		return *this;
 	}
 
-	static Logger& warning(){
-		Logger *p =  &get();
-		//boost::unique_lock<boost::mutex> lock(p->mtx_);
+	logger& warning(){
 	
 #ifdef _DEBUG_				
-		*p << "[WARNING] ";
+		m_file << "[WARNING] ";
 #endif /*_DEBUG_*/
 
-		return *p;
+		return *this;
 	}
 
-	static Logger& error(){
-		Logger *p =  &get();
-		//boost::unique_lock<boost::mutex> lock(p->mtx_);
+	logger& error(){
 		
 #ifdef _DEBUG_		
-		*p << "[ERROR] ";
+		m_file << "[ERROR] ";
 #endif /*_DEBUG_*/		
 
-		return *p;
+		return *this;
 	}
 
     template <typename T>
-    Logger &operator << (const T &a) {
+    logger &operator << (const T &a) {
 
 #ifdef _DEBUG_		    	
-        m_file<<a;
+        m_file << a;
 #endif /*_DEBUG_*/
 
         return *this;
     }
 
-    Logger &operator<<(std::ostream& (*pf) (std::ostream&)){
+    logger &operator<<(std::ostream& (*pf) (std::ostream&)){
 
 #ifdef _DEBUG_		
-        m_file<<pf;
+        m_file << pf;
 #endif /*_DEBUG_*/
 
         return *this;
     }
 
 //---------------------- Member Functions ----------------------//	
-public:
-	//boost::mutex mtx_;
-private:
+protected:
     std::ostream &m_file;
-    static std::unique_ptr<Logger> instance_;					// logger itself
 }; // end of logger class 
 
+
+// Singleton class 
+/////////////////////////////////////////////////////////////////
+template <typename T>
+class singleton {
+protected:
+	singleton() {}
+	~singleton() {}
+
+public: 
+	static T& get() {
+		T* p = instance_.get();
+
+		if(!p) {
+			instance_.reset(new T);
+			p = instance_.get();
+		}
+
+		return *p; 
+	}
+
+private:
+	static std::unique_ptr<T> instance_;				// class instance
+};
+
+template <typename T> 
+std::unique_ptr<T> singleton<T>::instance_ = nullptr;
 
 // end of code 

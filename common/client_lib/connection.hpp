@@ -1,38 +1,10 @@
 #pragma once
 
-#include "../server_lib/utils.hpp"
-
+#include "../utils.hpp"
 
 // const
 //////////////////////////////////////////////////////////////////
 const unsigned short CLIENT_PACKET_POOL_COUNT = 10; 			//10 might be enough to handle PACKET_POOL_COUNT
-
-// Singleton class 
-/////////////////////////////////////////////////////////////////
-template <typename T>
-class singleton {
-protected:
-	singleton() {}
-	~singleton() {}
-
-public: 
-	static T& get() {
-		T* p = instance_.get();
-
-		if(!p) {
-			instance_.reset(new T);
-			p = instance_.get();
-		}
-
-		return *p; 
-	}
-
-private:
-	static std::unique_ptr<T> instance_;				// class instance
-};
-
-template <typename T> 
-std::unique_ptr<T> singleton<T>::instance_ = nullptr;
 
 // Server Controller Class
 //////////////////////////////////////////////////////////////////

@@ -1,6 +1,8 @@
 #include "connection.hpp"
 #include <boost/make_shared.hpp>
 
+typedef singleton<logger> logger_singleton; 
+
 // constructor 
 //////////////////////////////////////////////////////////////////
 connection::connection()
@@ -42,7 +44,7 @@ bool connection::init(){
 //////////////////////////////////////////////////////////////////
 bool connection::shutdown(){
 
-	std::cout << "client controller is shutdown" << std::endl;
+	logger_singleton::get().info() << "client controller is shutdown" << std::endl;
 
 	ios_.stop();
 
@@ -92,7 +94,7 @@ void connection::connect( boost::asio::ip::tcp::endpoint endpoint )
 	);
 	set_connection_stat(SS_WAITING);
 
-	std::cout << "client is running in single-thread mode" << std::endl;
+	logger_singleton::get().info() << "client is running in single-thread mode" << std::endl;
 
 	// run io service
 	//ios_.run();
@@ -106,14 +108,14 @@ void connection::handle_connect(const boost::system::error_code& error){
 
 	if (!error) {	
 
-		std::cout << "connected successfully" << std::endl;
+		logger_singleton::get().info() << "connected successfully" << std::endl;
 		post_recv();
 
 		set_connection_stat(SS_OPEN);
 
 	} else {
 
-		std::cout << "handle_connect error No: " << error.value() << std::endl;
+		logger_singleton::get().warning() << "handle_connect error No: " << error.value() << std::endl;
 		shutdown();
 	}
 } // end of handle_connect()
@@ -171,11 +173,11 @@ void connection::handle_receive( const boost::system::error_code& error, std::si
 	{
 		if( error == boost::asio::error::eof )
 		{
-			std::cout << "remote peer closed the connection " << std::endl;
+			logger_singleton::get().warning() << "remote peer closed the connection " << std::endl;
 		}
 		else 
 		{
-			std::cout  << "socket error is occured!!!"  << std::endl;
+			logger_singleton::get().warning()  << "socket error is occured!!!"  << std::endl;
 		}
 
 		shutdown();
@@ -356,7 +358,7 @@ void connection::post_udp_recv() {
 //////////////////////////////////////////////////////////////////
 bool connection::post_udp_send(const char* data, const unsigned short size) {
 
-	//std::cout << "post_udp_send - address: " << udp_addr_ << "| port: " << udp_port_ << std::endl;
+	//logger_singleton::get().info() << "post_udp_send - address: " << udp_addr_ << "| port: " << udp_port_ << std::endl;
 	
 	if(!udp_socket_.get()) return false;
 
