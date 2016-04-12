@@ -1,4 +1,4 @@
 *.o
 *swp
-agent
+drone_agent
 obj
