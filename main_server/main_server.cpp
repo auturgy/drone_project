@@ -1,15 +1,16 @@
 #include "../common/server_lib/server_ctrl.hpp"
 #include "client.hpp"
+typedef singleton<server_ctrl> server_singleton; 
 
 int main(int argc, char* argv[]){
 
 
 
 
-	server_ctrl::get().init();
+	server_singleton::get().init();
 	
 	// pause here until server is shutdown
-	server_ctrl::get().start(); 
+	server_singleton::get().start(); 
 	
 
 	return 0;

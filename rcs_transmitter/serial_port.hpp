@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common/server_lib/utils.hpp"
+#include "../common/utils.hpp"
 #include <boost/asio/serial_port.hpp>
 
 // Serial Port Class
