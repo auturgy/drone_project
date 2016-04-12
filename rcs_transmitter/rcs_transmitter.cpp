@@ -61,8 +61,10 @@ bool rcst::find_drone_ip(unsigned short drone_id /*lte sim?*/) {
 }
 
 
+// function run in rcs transmitter  
+//////////////////////////////////////////////////////////////////
 bool rcst::run() {
-
+	
 	// [1] open serial port to get remote controlling signal 
 	if(!sp_singleton::get().start(
 				ios_,
@@ -73,12 +75,22 @@ bool rcst::run() {
 				))
 		return false;
 
-	// [2] connect to server
-	auto endpoint = boost::asio::ip::tcp::endpoint( 
-						boost::asio::ip::address::from_string(server_addr_), 
-						server_port_);
+	if(1) {
 
-	connect(endpoint);
+		// for test without server operation 
+		std::string default_drone_addr 	= "125.152.166.26";
+		udp_on(default_drone_addr, DEFAULT_PORT_NUMBER);
+
+	} else {
+
+		// connect to server in order to get drone ip 
+		auto endpoint = boost::asio::ip::tcp::endpoint( 
+							boost::asio::ip::address::from_string(server_addr_), 
+							server_port_);
+
+		connect(endpoint);
+
+	}
 
 	return true;
 }
@@ -87,7 +99,7 @@ bool rcst::run() {
 
 typedef singleton<rcst> rcst_singleton; 
 
-// const  
+// const for test 
 //////////////////////////////////////////////////////////////////
 const std::string default_server_addr	= "192.168.1.101";
 

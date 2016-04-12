@@ -123,7 +123,7 @@ int serial_port::write_some(const char *buf, const int &size)
 } // end of write_some function 
 
 
-// for thread calling 
+// process syncronously 
 //////////////////////////////////////////////////////////////////
 void serial_port::sync_process(){
 
