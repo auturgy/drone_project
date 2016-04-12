@@ -351,6 +351,8 @@ bool connection::udp_on(std::string& addr, unsigned short port) {
 		)
 	);
 
+	logger_singleton::get().info()  << "UDP socket is open properly" << std::endl;
+
 	return true;
 
 } // end of udp_on function 
