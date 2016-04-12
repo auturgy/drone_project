@@ -43,6 +43,6 @@ $(LIB_OBJECTS) : $(OBJ_DIR)/%.o: $(LIB_SRC_DIR)/%.cpp
 
 clean:
 
-	rm -f $(EXEC) $(LIB_OBJECTS)
+	rm -f $(EXEC) $(OBJECTS) $(LIB_OBJECTS)
 	
 	
