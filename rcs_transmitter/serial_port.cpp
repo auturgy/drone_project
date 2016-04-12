@@ -2,6 +2,8 @@
 #include <boost/make_shared.hpp>
 #include "rcs_transmitter.hpp"
 
+typedef singleton<logger> logger_singleton; 
+
 // start function   
 // choose whether mode is asyncrounous 
 //////////////////////////////////////////////////////////////////
@@ -20,8 +22,8 @@ bool serial_port::start(
 	serial_port_->open(port, error);
 
 	if(error){
-	
-		std::cout << "can not open " << port << " port" << std::endl;
+		logger_singleton::get().error() << "can not open " << port << " port" << std::endl;
+		logger_singleton::get().info() << "change UART port and try again!!!! " << std::endl;
 		return false;
 	}
 
@@ -49,7 +51,7 @@ void serial_port::stop(){
 
 	if (serial_port_.get()) {
 
-		std::cout << "serial_port::stop" << std::endl;
+		logger_singleton::get().info() << "serial_port::stop" << std::endl;
 
 		serial_port_->cancel();
 		serial_port_->close();
@@ -62,7 +64,7 @@ void serial_port::stop(){
 bool serial_port::post_recv() {
 
 	if (serial_port_.get() == NULL || !serial_port_->is_open()){
-		std::cout << "serial_port::post_recv - error" << std::endl;
+		logger_singleton::get().info() << "serial_port::post_recv - error" << std::endl;
 		return false;	
 	} 
 
@@ -83,7 +85,7 @@ bool serial_port::post_recv() {
 void serial_port::handle_receive( const boost::system::error_code& error, std::size_t bytes_transferred ){
 
 	if (serial_port_.get() == NULL || !serial_port_->is_open()) {
-		std::cout << "port is closed" << std::endl;
+		logger_singleton::get().error() << "port is closed" << std::endl;
 		return;
 	}
 
@@ -93,7 +95,7 @@ void serial_port::handle_receive( const boost::system::error_code& error, std::s
 		typedef singleton<rcst> rcst_singleton; 
 		if(!rcst_singleton::get().post_udp_send(reinterpret_cast<const char*>(read_buf_raw_.get()),rcv_buff_size_)) {	
 			// no udp connection, then just print out 
-			std::cout << read_buf_raw_.get();	
+			logger_singleton::get() << read_buf_raw_.get();	
 		}
 	}
 
@@ -136,7 +138,7 @@ void serial_port::sync_process(){
 		typedef singleton<rcst> rcst_singleton; 
 		if(!rcst_singleton::get().post_udp_send(reinterpret_cast<const char*>(read_buf_raw_.get()),rcv_buff_size_)) {	
 			// no udp connection, then just print out 
-			std::cout << read_buf_raw_.get();	
+			logger_singleton::get() << read_buf_raw_.get();	
 		}
 	}
 

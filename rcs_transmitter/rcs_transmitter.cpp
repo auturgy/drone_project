@@ -2,6 +2,7 @@
 #include "rcs_transmitter.hpp"
 #include "serial_port.hpp"
 typedef singleton<serial_port> sp_singleton; 
+typedef singleton<logger> logger_singleton; 
 
 // function init
 // do this function first!!!
@@ -44,7 +45,8 @@ void rcst::process_packet(const char* data, const unsigned short size) {
 
 void rcst::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	std::cout << "[RCST] " << rcv_udp_buff_->get()->ptr_ << std::endl;
+	rcv_udp_buff_->get()->ptr_[bytes_transferred] = 0x00;
+	logger_singleton::get() << rcv_udp_buff_->get()->ptr_;
 	post_udp_recv();
 }
 
@@ -75,22 +77,19 @@ bool rcst::run() {
 				))
 		return false;
 
-	if(1) {
+	// [2] for test without server operation 
+	std::string default_drone_addr 	= "125.152.166.26";
+	udp_on(default_drone_addr, DEFAULT_PORT_NUMBER);
 
-		// for test without server operation 
-		std::string default_drone_addr 	= "125.152.166.26";
-		udp_on(default_drone_addr, DEFAULT_PORT_NUMBER);
+	// [3]connect to server in order to get drone ip 
+	auto endpoint = boost::asio::ip::tcp::endpoint( 
+						boost::asio::ip::address::from_string(server_addr_), 
+						server_port_);
 
-	} else {
+	connect(endpoint);
 
-		// connect to server in order to get drone ip 
-		auto endpoint = boost::asio::ip::tcp::endpoint( 
-							boost::asio::ip::address::from_string(server_addr_), 
-							server_port_);
-
-		connect(endpoint);
-
-	}
+	// [4] start server and wait until ctrl+c
+	start();
 
 	return true;
 }
@@ -127,12 +126,11 @@ int main(int argc, char* argv[]) {
 
 	if(!rcst_singleton::get().init(serial_port, sever_addr, DEFAULT_PORT_NUMBER, drone_id) ||
 		!rcst_singleton::get().run())
-		std::cout << "failed to initialte" << std::endl;
+		logger_singleton::get().error() << "failed to initiate" << std::endl;
 
-	std::getchar();
-	rcst_singleton::get().shutdown();
+	//rcst_singleton::get().shutdown();
 
-	return 1;
+	return 0;
 }
 
 #endif /* _RCST_ */
