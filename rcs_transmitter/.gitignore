@@ -1,0 +1,4 @@
+*.o
+*swp
+rcs_transmitter
+obj
