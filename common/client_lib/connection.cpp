@@ -356,7 +356,7 @@ void connection::post_udp_recv() {
 //////////////////////////////////////////////////////////////////
 bool connection::post_udp_send(const char* data, const unsigned short size) {
 
-	std::cout << "post_udp_send - address: " << udp_addr_ << "| port: " << udp_port_ << std::endl;
+	//std::cout << "post_udp_send - address: " << udp_addr_ << "| port: " << udp_port_ << std::endl;
 	
 	if(!udp_socket_.get()) return false;
 

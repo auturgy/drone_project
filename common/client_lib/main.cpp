@@ -87,7 +87,7 @@ int tcp_test(std::string& addr) {
 //////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) {
 
-	bool is_udp_test = true;
+	bool is_udp_test = false;
 	std::string addr;
 
 	if( argc > 1) {
