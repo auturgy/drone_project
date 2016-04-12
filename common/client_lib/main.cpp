@@ -1,107 +1,126 @@
 #ifdef _CLIENT_TEST_
+//#include <cstdlib>
+//#include <cstring>
 
 #include "connection.hpp"
-typedef singleton<connection> conn_singleton; 
+typedef singleton<connection> conn_singleton;
+
+// posix_input class 
+//////////////////////////////////////////////////////////////////
+class posix_input {
+public:
+	posix_input(boost::asio::io_service& io_service)
+		:input_(io_service, ::dup(STDIN_FILENO))
+		,input_buffer_(MAX_RECEIVE_BUFFER_LEN)
+	{}
+	~posix_input() {}
+
+	void init()
+	{
+		std::cout << "====================================================================================" << std::endl;
+		std::cout << "   You can put your message through TCP, UDP, or both after successful connection" 	<< std::endl;
+		std::cout << "====================================================================================" << std::endl;
+		post_posix_input();
+	}
+
+	 void close() { 
+	 	input_.close();
+	 }
+
+protected:
+	void post_posix_input()
+	{
+		// Read a line of input entered by the user.
+		boost::asio::async_read_until(
+			input_,
+			input_buffer_, 
+			'\n',
+			boost::bind(
+				&posix_input::handle_read_input, 
+				this,
+				boost::asio::placeholders::error,
+				boost::asio::placeholders::bytes_transferred
+			)
+		);
+	}
+
+	void handle_read_input(const boost::system::error_code& error, std::size_t length)
+	{
+		if (!error)
+		{
+			std::string line;
+            std::istream is(&input_buffer_);
+            std::getline(is, line);
+
+			if(conn_singleton::get().get_connection_stat() == SS_OPEN) {
+				boost::shared_ptr<PKT_UNIT>& packet = conn_singleton::get().alloc_packet();
+				PKT_REQ_TEST* packet_p = (PKT_REQ_TEST*)packet.get();				
+				packet_p->init();
+				std::memcpy(packet_p->buffer_, line.c_str(), length);
+				packet_p->size_ += length;
+
+				conn_singleton::get().post_send(packet, packet_p->size_);
+			}
+
+			conn_singleton::get().post_udp_send(line.c_str(), length);
+
+			post_posix_input();
+			
+		} else {
+			close();
+		}
+	}
+
+protected:
+	boost::asio::posix::stream_descriptor input_;
+	boost::asio::streambuf input_buffer_;
+};
+
 
 // upd connection test 
 //////////////////////////////////////////////////////////////////
 int udp_test(std::string& addr) {
 
-	//conn_singleton::get.init();
-	conn_singleton::get().init();
 	conn_singleton::get().udp_on(addr, DEFAULT_PORT_NUMBER);
 
-	std::string test = "test";
-	conn_singleton::get().post_udp_send(test.c_str(),test.length());
-
-	std::getchar();
-
-	conn_singleton::get().shutdown();
-
-	return 1;
+	return 0;
 }
 
 // tcp connection test 
 //////////////////////////////////////////////////////////////////
 int tcp_test(std::string& addr) {
 
-	const unsigned short MAX_MESSAGE_LEN = 100;
-	char szInputMessage[MAX_MESSAGE_LEN * 2] = {0,};
-	
 	auto endpoint = boost::asio::ip::tcp::endpoint( 
-						//boost::asio::ip::address::from_string("192.168.1.101"), 
 						boost::asio::ip::address::from_string(addr), 
 						DEFAULT_PORT_NUMBER);
 
-	conn_singleton::get().init();
 	conn_singleton::get().connect(endpoint);
 
-	unsigned short try_connecting = 0;
-	const unsigned short MAX_TRY = 5;
-
-	while(1) {
-		
-		sleep(1);
-		
-		if(conn_singleton::get().get_connection_stat() == SS_CLOSE || try_connecting > MAX_TRY) {
-			std::cout << "failed to connect ~!" << std::endl;
-			return 1;
-		}
-
-		if(conn_singleton::get().get_connection_stat() == SS_OPEN) {
-			std::cout << "=============================" << std::endl;
-			std::cout << "Connection is established~   " << std::endl;
-			std::cout << "=============================" << std::endl;
-			break;
-		}
-
-		std::cout << "connecting..." << std::endl;
-		try_connecting++;
-	}
-
-	do {
-
-		unsigned short input_len = std::strlen(szInputMessage);
-		//std::cout << input_len << std::endl;
-
-		if(input_len){
-
-			boost::shared_ptr<PKT_UNIT>& packet = conn_singleton::get().alloc_packet();
-			PKT_REQ_TEST* packet_p = (PKT_REQ_TEST*)packet.get();
-
-			packet_p->init();
-			std::memcpy(packet_p->buffer_, szInputMessage, input_len);
-			packet_p->size_ += input_len;
-
-			//std::cout << "packet_p->size_: " << packet_p->size_ << std::endl;
-			conn_singleton::get().post_send(packet, packet_p->size_);
-		}
-		sleep(1);
-		std::cout << "[Input] "; 
-	} while(std::cin.getline( szInputMessage, MAX_MESSAGE_LEN) );
-
-	return 1;
+	return 0;
 }
 
 // main
 //////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) {
 
-	bool is_udp_test = false;
-	std::string addr;
+	std::string addr = "127.0.0.1";
+	posix_input posix_input(conn_singleton::get().ios_);
 
-	if( argc > 1) {
+	if( argc > 1)
 		addr = argv[1]; 
-	} else {
-		addr = "127.0.0.1";
+	
+	posix_input.init();
+	conn_singleton::get().init();
+
+	tcp_test(addr);
+	if(udp_test(addr)){	
+		return -1;		
 	}
 
-	if(is_udp_test)
-		udp_test(addr);
-	else 
-		tcp_test(addr);
+	conn_singleton::get().start();					// wait until ctrl-c
+	//conn_singleton::get().shutdown();				// it doesn't need 
 	
-	return 1;
+	return 0;
 }
 
 #endif /* _CLIENT_TEST_ */

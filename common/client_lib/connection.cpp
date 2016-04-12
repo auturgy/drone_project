@@ -1,5 +1,6 @@
 #include "connection.hpp"
 #include <boost/make_shared.hpp>
+#include <boost/exception/all.hpp>
 
 typedef singleton<logger> logger_singleton; 
 
@@ -25,7 +26,7 @@ inline boost::asio::ip::tcp::socket& connection::socket(){
 } // end of socket()
 
 
-// 
+// function init()
 //////////////////////////////////////////////////////////////////
 bool connection::init(){
 	for(int i = 0; i < CLIENT_PACKET_POOL_COUNT ; i++ )
@@ -34,11 +35,17 @@ bool connection::init(){
 
 		packet_list_.push_back(pkt_unit_ptr);
 		packet_queue_.push(i);
-	
+		
 	}
 	return true;
 } // end of init()
 
+// function start()
+//////////////////////////////////////////////////////////////////
+void connection::start(){
+	ios_.run();	
+	tg_.join_all();
+}
 
 // shutdown socket
 //////////////////////////////////////////////////////////////////
@@ -46,14 +53,15 @@ bool connection::shutdown(){
 
 	logger_singleton::get().info() << "client controller is shutdown" << std::endl;
 
-	ios_.stop();
-
     if( socket().is_open() )
 	{
 		socket().close();
 	}
 
-	//thread_.join();
+	// in case of udp communication 
+	if(!udp_socket_.get()) {
+		ios_.stop();
+	}
   
   	set_connection_stat(SS_CLOSE);
 	return true;
@@ -94,11 +102,12 @@ void connection::connect( boost::asio::ip::tcp::endpoint endpoint )
 	);
 	set_connection_stat(SS_WAITING);
 
-	logger_singleton::get().info() << "client is running in single-thread mode" << std::endl;
-
-	// run io service
-	//ios_.run();
-	thread_ = boost::thread( boost::bind(&boost::asio::io_service::run, &ios_) );
+	tg_.create_thread(
+		boost::bind(
+			&boost::asio::io_service::run, 
+			boost::ref(ios_)
+		)
+	);
 
 } // end of connect 
 
@@ -111,7 +120,7 @@ void connection::handle_connect(const boost::system::error_code& error){
 		logger_singleton::get().info() << "connected successfully" << std::endl;
 		post_recv();
 
-		set_connection_stat(SS_OPEN);
+		set_connection_stat(SS_OPEN);		
 
 	} else {
 
@@ -294,7 +303,7 @@ void connection::process_packet(const char* data, const unsigned short size) {
 
 	PKT_REQ_TEST* packet_p = (PKT_REQ_TEST*)buff.get()->ptr_;
 
-	std::cout << "[received] " << packet_p->buffer_ << std::endl;
+	std::cout << "[TCP-Recv] " << packet_p->buffer_ << std::endl;
 	
 	// send data 
 	//post_send(buff.get()->ptr_, size);
@@ -317,20 +326,31 @@ bool connection::udp_on(std::string& addr, unsigned short port) {
 		rcv_udp_buff_ = &alloc_packet();
 	}
 
-	udp_socket_ = boost::make_shared<boost::asio::ip::udp::socket>(
-					boost::ref(ios_),
-					boost::asio::ip::udp::endpoint( 
-						boost::asio::ip::udp::v4(), 
-						udp_port_
-					) 
-				);
-
+	try {
+		udp_socket_ = boost::make_shared<boost::asio::ip::udp::socket>(
+						boost::ref(ios_),
+						boost::asio::ip::udp::endpoint( 
+							boost::asio::ip::udp::v4(), 
+							udp_port_
+						) 
+					);
+	}
+	catch (boost::exception &e)
+	{
+		logger_singleton::get().error()  << "UDP socket on port " << udp_port_ << " is already open" << std::endl;
+		return false;
+	}
+	
 	post_udp_recv();
 
-	// make another thread if tcp service already runs
-	thread_ = boost::thread( boost::bind(&boost::asio::io_service::run, &ios_) );
+	// make an another thread for faster udp operation 
+	tg_.create_thread(
+		boost::bind(
+			&boost::asio::io_service::run, 
+			boost::ref(ios_)
+		)
+	);
 
-	set_connection_stat(get_connection_stat() | SS_UDP);
 	return true;
 
 } // end of udp_on function 
@@ -354,6 +374,17 @@ void connection::post_udp_recv() {
 } // end of post_udp_recv function 
 
 
+// handle sonthing after sending data if needed
+//////////////////////////////////////////////////////////////////
+void connection::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
+
+	std::cout << "[UDP-Recv] " << rcv_udp_buff_->get()->ptr_ << std::endl;
+
+	post_udp_recv();
+
+} // end of handle_udp_receive function 
+
+
 // send data through UDP
 //////////////////////////////////////////////////////////////////
 bool connection::post_udp_send(const char* data, const unsigned short size) {
@@ -368,50 +399,26 @@ bool connection::post_udp_send(const char* data, const unsigned short size) {
 			boost::asio::ip::address::from_string(udp_addr_), 
 			udp_port_ 
 		),
+		[](const boost::system::error_code& error, std::size_t bytes_transferred){}
+		/*
 		boost::bind( 
 			&connection::handle_udp_send, 
 			this,
 			boost::asio::placeholders::error,
 			boost::asio::placeholders::bytes_transferred
 			)
+		*/
 	);
 
 	return true;
 
 } // end of post_udp_send function 
-
-
-// send data through UDP with packet structure 
-//////////////////////////////////////////////////////////////////
-bool connection::post_udp_send(boost::shared_ptr<PKT_UNIT>& packet, const unsigned short size) {
-
-	post_udp_send( packet.get()->ptr_, size);
-	release_packet(packet.get()->id_);
-
-	return true;
-
-} // end of post_udp_send
-
-
-// handle sonthing after sending data if needed
-//////////////////////////////////////////////////////////////////
-void connection::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
-
-	std::cout << "[received] " << rcv_udp_buff_->get()->ptr_ << std::endl;
-
-	// echo as an example 
-	//post_udp_send(rcv_udp_buff_->get()->ptr_, bytes_transferred);
-
-	post_udp_recv();
-
-} // end of handle_udp_receive function 
-
-
+/*
 // after sending procedure is done 
 //////////////////////////////////////////////////////////////////
 void connection::handle_udp_send(const boost::system::error_code& error, std::size_t bytes_transferred) {
 	// do nothing
 } // end of handle_udp_send function 
-
+*/
 
 // end of file

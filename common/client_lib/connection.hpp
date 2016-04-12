@@ -20,6 +20,7 @@ public:
 	}
 
 	bool init();
+	void start();
 	bool shutdown();									// shutdown socket
 
 	// TCP/IP ////////////////////////////////////////////////////
@@ -30,7 +31,6 @@ public:
 	// UDP/IP ////////////////////////////////////////////////////
 	bool udp_on(std::string& addr, unsigned short port);
 	bool post_udp_send(const char* data, const unsigned short size);// send data to client
-	bool post_udp_send(boost::shared_ptr<PKT_UNIT>& packet, const unsigned short size);// send data to client
 
 	// packet pool management 
 	boost::shared_ptr<PKT_UNIT>& alloc_packet();				//	allocate a packet
@@ -61,7 +61,7 @@ protected:
 	// UDP/IP ////////////////////////////////////////////////////
 	void post_udp_recv();
 	virtual void handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred );
-	void handle_udp_send(const boost::system::error_code& error, std::size_t bytes_transferred);
+	//void handle_udp_send(const boost::system::error_code& error, std::size_t bytes_transferred);
 	
 //---------------------- Member Variables ----------------------//
 public: 
@@ -73,7 +73,7 @@ protected:
 	boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;	// socket 	
 	boost::shared_ptr<boost::asio::ip::udp::socket> udp_socket_;// udp socket 
 
-	boost::thread thread_;
+	boost::thread_group tg_;
 	boost::atomic<unsigned short> connection_stat_;
 
 	unsigned short udp_port_;

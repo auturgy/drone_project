@@ -24,6 +24,9 @@ Based on my experience, most of problems come from link error in a makefile. In 
 	
 In addition to it, all boost links should be used without "-mt". For example, you use -lboost_regex instead of -lboost_regex-mt in default raspbian.
 
+## Reference Sites  
+
+- [http://www.boost.org/doc/libs/1_49_0/doc/html/boost_asio/example/chat/posix_chat_client.cpp](http://www.boost.org/doc/libs/1_49_0/doc/html/boost_asio/example/chat/posix_chat_client.cpp)
 
 ## License   
 Powered by Jay Kim(or Jong Yoon Kim). Code licensed under an MIT-style License. Documentation licensed under CC BY 4.0.

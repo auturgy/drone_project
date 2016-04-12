@@ -20,10 +20,9 @@ const unsigned short DEFAULT_PORT_NUMBER = 31400;				// default port number
 
 // session statement 
 const unsigned short SS_CLOSE 	= 0;							// session is off 
-const unsigned short SS_WAITING = 0x1 << 1;						// when waiting for accepting 
-const unsigned short SS_OPEN 	= 0x1 << 2;						// session is on
-const unsigned short SS_UDP 	= 0x1 << 3;						// session is on
-const unsigned short SS_MAX 	= 0x1 << 15;					// maximum count 
+const unsigned short SS_WAITING = 1;							// when waiting for accepting 
+const unsigned short SS_OPEN 	= 2;							// session is on
+const unsigned short SS_MAX 	= 3;							// maximum count 
 
 
 // packet unit struct for managing packet manager 
