@@ -9,12 +9,12 @@ int main() {
 	
 	server_singleton::get().init();
 	
-	// pause here until server is shutdown
+	// wait here until server is shutdown
 	server_singleton::get().start(); 
 	
 	//server_singleton::get().stop();
 	
-	getchar();
+	std::getchar();
 	return 0;
 }
 
