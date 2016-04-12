@@ -5,8 +5,6 @@ typedef singleton<server_ctrl> server_singleton;
 int main(int argc, char* argv[]){
 
 
-
-
 	server_singleton::get().init();
 	
 	// pause here until server is shutdown
