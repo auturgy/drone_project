@@ -47,8 +47,8 @@ public:
 		return connection_stat_.load(boost::memory_order_acquire);
 	}
 
-	virtual bool init();
-	virtual bool shutdown();											// shutdown socket
+	bool init();
+	bool shutdown();									// shutdown socket
 
 	// TCP/IP ////////////////////////////////////////////////////
 	void connect(boost::asio::ip::tcp::endpoint endpoint);		// try to connect to server	
@@ -77,7 +77,7 @@ protected:
 	bool post_recv();											// preparation for receiving data from client 
 	bool post_recv(unsigned short start);						// adjust packet 
 
-	void handle_connect(const boost::system::error_code& error);// after trying to connect
+	virtual void handle_connect(const boost::system::error_code& error);// after trying to connect
 	// handle received data after receiving data is done
 	void handle_receive( const boost::system::error_code& error, std::size_t bytes_transferred );
 	// handle sonthing after sending data if needed

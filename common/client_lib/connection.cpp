@@ -328,6 +328,7 @@ bool connection::udp_on(std::string& addr, unsigned short port) {
 	// make another thread if tcp service already runs
 	thread_ = boost::thread( boost::bind(&boost::asio::io_service::run, &ios_) );
 
+	set_connection_stat(get_connection_stat() | SS_UDP);
 	return true;
 
 } // end of udp_on function 
@@ -357,6 +358,8 @@ bool connection::post_udp_send(const char* data, const unsigned short size) {
 
 	std::cout << "post_udp_send - address: " << udp_addr_ << "| port: " << udp_port_ << std::endl;
 	
+	if(!udp_socket_.get()) return false;
+
 	udp_socket_->async_send_to( 
 		boost::asio::buffer(data, size),
 		boost::asio::ip::udp::endpoint( 
