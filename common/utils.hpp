@@ -25,6 +25,23 @@ const unsigned short SS_OPEN 	= 2;							// session is on
 const unsigned short SS_MAX 	= 3;							// maximum count 
 
 
+// RC Singal for 6 channels structure
+//
+// change the structure defined in ../rcs_transmitter/rcs_collector together
+// if you need to modify the structure 
+//  
+//////////////////////////////////////////////////////////////////
+struct RC_SIGNAL
+{
+	unsigned short pin_1_;
+	unsigned short pin_2_;
+	unsigned short pin_3_;
+	unsigned short pin_4_;
+	unsigned short pin_5_;
+	unsigned short pin_6_;
+};
+
+
 // packet unit struct for managing packet manager 
 //////////////////////////////////////////////////////////////////
 struct PKT_UNIT

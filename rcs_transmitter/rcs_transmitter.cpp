@@ -70,6 +70,7 @@ bool rcst::run() {
 	// [1] open serial port to get remote controlling signal 
 	if(!sp_singleton::get().start(
 				ios_,
+				//sizeof(RC_SIGNAL), 
 				1,		// length to read at once 
 				serial_port_,
 				9600,	// baud rate 
@@ -123,6 +124,8 @@ int main(int argc, char* argv[]) {
 		sever_addr = default_server_addr;
 		drone_id = default_drone_id;
 	}
+
+	std::cout << "RC_SIGNAL structure size is :" << sizeof(RC_SIGNAL) << std::endl;
 
 	if(!rcst_singleton::get().init(serial_port, sever_addr, DEFAULT_PORT_NUMBER, drone_id) ||
 		!rcst_singleton::get().run())

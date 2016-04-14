@@ -129,16 +129,37 @@ int serial_port::write_some(const char *buf, const int &size)
 //////////////////////////////////////////////////////////////////
 void serial_port::sync_process(){
 
+	unsigned short i = 0;
 	while(serial_port_->is_open()) {
 
 		// recevie 
-		serial_port_->read_some(boost::asio::buffer(read_buf_raw_.get(),rcv_buff_size_));
+		serial_port_->read_some(boost::asio::buffer(&read_buf_raw_.get()[i],rcv_buff_size_));
 
-		// do something 
-		typedef singleton<rcst> rcst_singleton; 
-		if(!rcst_singleton::get().post_udp_send(reinterpret_cast<const char*>(read_buf_raw_.get()),rcv_buff_size_)) {	
-			// no udp connection, then just print out 
-			logger_singleton::get() << read_buf_raw_.get();	
+		if(read_buf_raw_.get()[i] == '\n')
+		{
+			RC_SIGNAL *rcs_p = reinterpret_cast<RC_SIGNAL *>(read_buf_raw_.get());
+
+			if( sizeof(RC_SIGNAL) == i ) {
+
+				std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
+
+				// do something 
+				typedef singleton<rcst> rcst_singleton; 
+				if(!rcst_singleton::get().post_udp_send(reinterpret_cast<const char*>(read_buf_raw_.get()),rcv_buff_size_)) {	
+					// no udp connection, then just print out 
+					logger_singleton::get() << read_buf_raw_.get();	
+				}
+
+			} else {
+
+				logger_singleton::get().error() << "Broken data is comming through UART" << std::endl;
+
+			}
+
+			i = 0;
+
+		} else {
+			++i;
 		}
 	}
 

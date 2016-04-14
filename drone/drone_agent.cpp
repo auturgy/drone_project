@@ -27,9 +27,19 @@ void drone_agent::process_packet(const char* data, const unsigned short size) {
 void drone_agent::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
 	// example codes
-	unsigned char c = *reinterpret_cast<unsigned char*>(rcv_udp_buff_->get()->ptr_);
-	logger_singleton::get() << c;
+	//unsigned char c = *reinterpret_cast<unsigned char*>(rcv_udp_buff_->get()->ptr_);
+	//logger_singleton::get() << c;
 	//logger_singleton::get() << rcv_udp_buff_->get()->ptr_;
+
+	RC_SIGNAL *rcs_p = reinterpret_cast<RC_SIGNAL *>(rcv_udp_buff_->get()->ptr_);
+
+	if( sizeof(RC_SIGNAL) == bytes_transferred ) {
+
+		std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
+
+		// send data to Flight Controller 
+
+	}
 
 	// do something here!!!
 
