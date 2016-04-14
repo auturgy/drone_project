@@ -9,7 +9,7 @@ void drone_agent::handle_connect(const boost::system::error_code& error) {
 
 	if(!error) {
 
-		// do something here!!
+		// do something here just after connection is established. 
 
 	}
 
@@ -26,7 +26,12 @@ void drone_agent::process_packet(const char* data, const unsigned short size) {
 
 void drone_agent::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	logger_singleton::get() << rcv_udp_buff_->get()->ptr_;
+	// example codes
+	unsigned char c = *reinterpret_cast<unsigned char*>(rcv_udp_buff_->get()->ptr_);
+	//logger_singleton::get() << rcv_udp_buff_->get()->ptr_;
+
+	// do something here!!!
+
 	post_udp_recv();
 }
 
