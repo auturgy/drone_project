@@ -28,6 +28,7 @@ void drone_agent::handle_udp_receive( const boost::system::error_code& error, st
 
 	// example codes
 	unsigned char c = *reinterpret_cast<unsigned char*>(rcv_udp_buff_->get()->ptr_);
+	logger_singleton::get() << c;
 	//logger_singleton::get() << rcv_udp_buff_->get()->ptr_;
 
 	// do something here!!!
