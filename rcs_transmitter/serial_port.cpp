@@ -143,13 +143,9 @@ void serial_port::sync_process(){
 
 				std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
 
-				// do something 
 				typedef singleton<rcst> rcst_singleton; 
-				if(!rcst_singleton::get().post_udp_send(reinterpret_cast<const char*>(read_buf_raw_.get()),rcv_buff_size_)) {	
-					// no udp connection, then just print out 
-					logger_singleton::get() << read_buf_raw_.get();	
-				}
-
+				rcst_singleton::get().post_udp_send(reinterpret_cast<const char*>(read_buf_raw_.get()),i);
+				
 			} else {
 
 				logger_singleton::get().error() << "Broken data is comming through UART" << std::endl;
