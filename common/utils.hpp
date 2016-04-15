@@ -24,7 +24,6 @@ const unsigned short SS_WAITING = 1;							// when waiting for accepting
 const unsigned short SS_OPEN 	= 2;							// session is on
 const unsigned short SS_MAX 	= 3;							// maximum count 
 
-
 // RC Singal for 6 channels structure
 //
 // change the structure defined in ../rcs_transmitter/rcs_collector together
@@ -41,6 +40,8 @@ struct RC_SIGNAL
 	unsigned short pin_6_;
 };
 
+// have to be the same as max pin num within the above structure
+const unsigned short RC_SIGNAL_MAX_PINS = 6; 					
 
 // packet unit struct for managing packet manager 
 //////////////////////////////////////////////////////////////////

@@ -59,6 +59,7 @@ In addition to it, all boost links should be used with "-mt". For example, you u
 
 [http://bakyeono.net/post/2015-08-30-connect-to-wifi-and-bluetooth-keyboard-on-raspberry-pi.html](http://bakyeono.net/post/2015-08-30-connect-to-wifi-and-bluetooth-keyboard-on-raspberry-pi.html)  
 [https://solarianprogrammer.com/2015/01/13/raspberry-pi-raspbian-install-gcc-compile-cpp-14-programs/](https://solarianprogrammer.com/2015/01/13/raspberry-pi-raspbian-install-gcc-compile-cpp-14-programs/)  
+[http://hertaville.com/2012/11/18/introduction-to-accessing-the-raspberry-pis-gpio-in-c/](http://hertaville.com/2012/11/18/introduction-to-accessing-the-raspberry-pis-gpio-in-c/)
 
 
 ## License   

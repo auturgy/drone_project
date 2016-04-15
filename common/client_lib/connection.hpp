@@ -19,7 +19,7 @@ public:
 		return connection_stat_.load(boost::memory_order_acquire);
 	}
 
-	bool init();
+	virtual bool init();
 	void start();
 	bool shutdown();									// shutdown socket
 
