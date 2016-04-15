@@ -11,7 +11,7 @@ typedef singleton<logger> logger_singleton;
 bool drone_agent::init() {
 	
 	// uncomment the below code when building on RPI
-	//gpio_set();
+	gpio_set();
 	
 	return connection::init();
 }
@@ -23,10 +23,10 @@ void drone_agent::gpio_set() {
 	//gpio_2_r_pins_.push_back(std::make_unique<gpio>(new gpio("2"));
 	gpio_2_r_pins_.push_back(std::make_unique<gpio>("2"));
 	gpio_2_r_pins_.push_back(std::make_unique<gpio>("3"));
-	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("4"));
-	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("5"));
-	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("6"));
-	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("7"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("4"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("5"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("6"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("7"));
 
 
 	for( int i = 0 ; i < RC_SIGNAL_MAX_PINS ; i++) {
@@ -39,13 +39,21 @@ void drone_agent::gpio_set() {
 //////////////////////////////////////////////////////////////////
 void drone_agent::send_to_gpio(RC_SIGNAL *rcs){
 
+	gpio_2_r_pins_[0]->setval_gpio(rcs->pin_1_);
+	gpio_2_r_pins_[1]->setval_gpio(rcs->pin_2_);
+	gpio_2_r_pins_[2]->setval_gpio(rcs->pin_3_);
+	gpio_2_r_pins_[3]->setval_gpio(rcs->pin_4_);
+	gpio_2_r_pins_[4]->setval_gpio(rcs->pin_5_);
+	gpio_2_r_pins_[5]->setval_gpio(rcs->pin_6_);
+
+/*
 	gpio_2_r_pins_[0]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_1_));
 	gpio_2_r_pins_[1]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_2_));
 	gpio_2_r_pins_[2]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_3_));
 	gpio_2_r_pins_[3]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_4_));
 	gpio_2_r_pins_[4]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_5_));
 	gpio_2_r_pins_[5]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_6_));
-
+*/
 }
 
 // overriding function : handle_connect
@@ -78,7 +86,7 @@ void drone_agent::handle_udp_receive( const boost::system::error_code& error, st
 		std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
 
 		// uncomment the below code when building on RPI
-		// send_to_gpio(rcs_p);
+		send_to_gpio(rcs_p);
 	}
 
 	// do something here!!!

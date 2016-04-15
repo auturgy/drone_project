@@ -87,6 +87,24 @@ bool gpio::setval_gpio(string val)
         return true;
 }
 
+
+// 
+//////////////////////////////////////////////////////////////////
+bool gpio::setval_gpio(unsigned short val)
+{
+
+    string setval_str = "/sys/class/gpio/gpio" + gpio_num_ + "/value";
+    ofstream setvalgpio(setval_str.c_str()); // open value file for gpio
+        if(!setvalgpio.is_open()){
+            cout << " OPERATION FAILED: Unable to set the value of GPIO"<<  gpio_num_ <<" ."<< endl;
+            return false;
+        }
+
+        setvalgpio << val ;//write value to value file
+        setvalgpio.close();// close value file
+        return true;
+}
+
 // 
 //////////////////////////////////////////////////////////////////
 bool gpio::getval_gpio(string& val){
