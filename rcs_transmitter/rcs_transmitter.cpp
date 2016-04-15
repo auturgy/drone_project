@@ -45,7 +45,7 @@ void rcst::process_packet(const char* data, const unsigned short size) {
 
 void rcst::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	rcv_udp_buff_->get()->ptr_[bytes_transferred] = 0x00;
+	//rcv_udp_buff_->get()->ptr_[bytes_transferred] = 0x00;
 	logger_singleton::get() << rcv_udp_buff_->get()->ptr_;
 	post_udp_recv();
 }
@@ -74,12 +74,17 @@ bool rcst::run() {
 				1,		// length to read at once 
 				serial_port_,
 				9600,	// baud rate 
-				false	// sync mode 
-				))
+				false,	// sync mode 
+				std::bind(
+					&rcst::process_uart_data,
+					this,
+					std::placeholders::_1,
+					std::placeholders::_2
+				)))
 		return false;
 
 	// [2] for test without server operation 
-	std::string default_drone_addr 	= "125.152.166.26";
+	std::string default_drone_addr 	= "192.168.1.100";//"125.152.166.26";
 	udp_on(default_drone_addr, DEFAULT_PORT_NUMBER);
 
 	// [3]connect to server in order to get drone ip 
@@ -95,13 +100,33 @@ bool rcst::run() {
 	return true;
 }
 
+// process uart data received 
+//////////////////////////////////////////////////////////////////
+void rcst::process_uart_data(unsigned char* pbuf, int size) {
+
+	RC_SIGNAL *rcs_p = reinterpret_cast<RC_SIGNAL *>(pbuf);
+
+	if( sizeof(RC_SIGNAL) == size ) {
+
+		std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
+
+		post_udp_send(reinterpret_cast<const char*>(pbuf),size);
+		
+	} else {
+
+		logger_singleton::get().error() << "Broken data is comming through UART" << std::endl;
+
+	}
+
+}
+
 #ifdef _RCST_
 
 typedef singleton<rcst> rcst_singleton; 
 
 // const for test 
 //////////////////////////////////////////////////////////////////
-const std::string default_server_addr	= "192.168.1.101";
+const std::string default_server_addr	= "192.168.1.100";
 
 const std::string default_serial_port	= "/dev/cu.usbmodem1411";
 const std::string default_drone_addr 	= "127.0.0.1";

@@ -12,7 +12,8 @@ bool serial_port::start(
 	unsigned short rcv_buff_size,
 	std::string port,
 	unsigned short baud_rate, 
-	bool async)
+	bool async,
+	ext_process proc)
 {
 	boost::system::error_code error;
 	serial_port_ = boost::make_shared<boost::asio::serial_port>(boost::ref(io));
@@ -40,6 +41,10 @@ bool serial_port::start(
 	} else {
 		boost::thread t(boost::bind(&boost::asio::io_service::run, &io));
 		post_recv();
+	}
+
+	if( proc != nullptr){
+		ext_process_ = std::move(proc);
 	}
 	
 	return true;
@@ -137,19 +142,8 @@ void serial_port::sync_process(){
 
 		if(read_buf_raw_.get()[i] == '\n')
 		{
-			RC_SIGNAL *rcs_p = reinterpret_cast<RC_SIGNAL *>(read_buf_raw_.get());
-
-			if( sizeof(RC_SIGNAL) == i ) {
-
-				std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
-
-				typedef singleton<rcst> rcst_singleton; 
-				rcst_singleton::get().post_udp_send(reinterpret_cast<const char*>(read_buf_raw_.get()),i);
-				
-			} else {
-
-				logger_singleton::get().error() << "Broken data is comming through UART" << std::endl;
-
+			if( ext_process_ != nullptr) {
+				ext_process_(read_buf_raw_.get(), i);
 			}
 
 			i = 0;

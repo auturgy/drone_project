@@ -2,6 +2,9 @@
 
 #include "../common/utils.hpp"
 #include <boost/asio/serial_port.hpp>
+#include <functional>
+
+typedef std::function<void(unsigned char*,int)> ext_process;
 
 // Serial Port Class
 //////////////////////////////////////////////////////////////////
@@ -9,7 +12,8 @@ class serial_port
 {
 //---------------------- Member Functions ----------------------//
 public:
-	serial_port() {}
+	serial_port()
+		: ext_process_(nullptr) {}
 	~serial_port() {}
 
 	bool start(
@@ -17,7 +21,8 @@ public:
 		unsigned short rcv_buff_size,
 		std::string port,
 		unsigned short baud_rate, 
-		bool async);
+		bool async,
+		ext_process proc);
 
 	void stop();
 
@@ -35,7 +40,8 @@ protected:
 	boost::shared_ptr<boost::asio::serial_port> serial_port_;
 	boost::shared_ptr<unsigned char[]> read_buf_raw_;
 	unsigned short rcv_buff_size_;
-	//rcst_base* rcst_base_;
+	
+	ext_process ext_process_;
 
 }; // end of serial port class 
 

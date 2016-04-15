@@ -19,6 +19,8 @@ protected:
 	void process_packet(const char* data, const unsigned short size);
 	void handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred );
 
+	void process_uart_data(unsigned char* pbuf, int size);
+
 	bool find_drone_ip(unsigned short drone_id /*lte sim?*/);	// ask if the drone is on
 
 //---------------------- Member Variables ----------------------//
