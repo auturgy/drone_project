@@ -1,5 +1,5 @@
 #include <boost/lexical_cast.hpp>
-#include <boost/make_unique.hpp>
+//#include <boost/make_unique.hpp>
 
 #include "drone_agent.hpp"
 #include "gpio.hpp"
@@ -20,12 +20,13 @@ bool drone_agent::init() {
 //////////////////////////////////////////////////////////////////
 void drone_agent::gpio_set() {
 
-	gpio_2_r_pins_.push_back(boost::make_unique<gpio>("2"));
-	gpio_2_r_pins_.push_back(boost::make_unique<gpio>("3"));
-	gpio_2_r_pins_.push_back(boost::make_unique<gpio>("4"));
-	gpio_2_r_pins_.push_back(boost::make_unique<gpio>("5"));
-	gpio_2_r_pins_.push_back(boost::make_unique<gpio>("6"));
-	gpio_2_r_pins_.push_back(boost::make_unique<gpio>("7"));
+	//gpio_2_r_pins_.push_back(std::make_unique<gpio>(new gpio("2"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("2"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("3"));
+	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("4"));
+	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("5"));
+	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("6"));
+	//gpio_2_r_pins_.push_back(boost::make_unique<gpio>("7"));
 
 
 	for( int i = 0 ; i < RC_SIGNAL_MAX_PINS ; i++) {
