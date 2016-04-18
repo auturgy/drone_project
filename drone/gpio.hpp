@@ -13,13 +13,10 @@ public:
     gpio(std::string x); 										// create a GPIO object that controls GPIOx, where x is passed to this constructor
     ~gpio(){}
 
-    bool export_gpio(); 										// exports GPIO
-    bool unexport_gpio(); 										// unexport GPIO
-
-    bool setdir_gpio(std::string dir); 							// Set GPIO Direction
-    bool setval_gpio(std::string val); 							// Set GPIO Value (putput pins)
+    //bool setdir_gpio(std::string dir); 							// Set GPIO Direction
+    //bool setval_gpio(std::string val); 							// Set GPIO Value (putput pins)
     bool setval_gpio(unsigned short val);
-    bool getval_gpio(std::string& val); 						// Get GPIO Value (input/ output pins)
+    //bool getval_gpio(std::string& val); 						// Get GPIO Value (input/ output pins)
     
     std::string get_gpio_num(); 								// return the GPIO number associated with the instance of an object
 
@@ -27,8 +24,6 @@ public:
 protected:
     std::string gpio_num_; 										// GPIO number associated with the instance of an object
 };
-
-
 
 
 // end of file 

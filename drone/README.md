@@ -1,4 +1,6 @@
 ## Introduction  
+  
+This is client library for my drone project. For multi-platform use, I use Boost as core engine.
 
 ## how to deploy on Raspberry Pi II/III
   
@@ -18,12 +20,22 @@ network = {
 }  
 ```  
 ### Build Environment  
+  
+**OS** : raspbian ([NOOBS v1.8.0](https://www.raspberrypi.org/downloads/noobs/))  
+**Language** : GNU c++14  
+**Boost** : 1.5.5  
+**ServoBlaster** : [ServoBlaster GitHub](https://github.com/richardghirst/PiBits/tree/master/ServoBlaster) 
 
 ```
 $ sudo apt-get update & upgrade 
 $ sudo apt-get git 
 $ sudo apt-get install libboost-all-dev
 $ sudo apt-get install vim (option)
+<- insall servoblaster ->
+$ git clone https://github.com/richardghirst/PiBits 
+$ cd PiBits/servoblaster/user 
+$ sudo make install  
+
 ```  
 
 > 공인 IP 확인 방법 : 
@@ -31,17 +43,7 @@ $ sudo apt-get install vim (option)
 
 ## 드론 조립 및 개발  
 
-## Introduction  
-  
-This is client library for my drone project. For multi-platform use, I use Boost as core engine.
-
-## Build Environment  
-
-**OS** : raspbian ([NOOBS v1.8.0](https://www.raspberrypi.org/downloads/noobs/))  
-**Language** : GNU c++11  
-**Boost** : 1.5.5
-
-> apt-get install boost  
+TBD  
 
 ## Trouble Shooting  
 
@@ -54,12 +56,13 @@ Based on my experience, most of problems come from link error in makefiles. In t
 	LIBS = -lm -ldl - lpthread -lboost_atomic  
 	
 In addition to it, all boost links should be used with "-mt". For example, you use -lboost_regex instead of -lboost_regex-mt in default raspbian.
-
+  
 ## Reference Sites  
 
 [http://bakyeono.net/post/2015-08-30-connect-to-wifi-and-bluetooth-keyboard-on-raspberry-pi.html](http://bakyeono.net/post/2015-08-30-connect-to-wifi-and-bluetooth-keyboard-on-raspberry-pi.html)  
 [https://solarianprogrammer.com/2015/01/13/raspberry-pi-raspbian-install-gcc-compile-cpp-14-programs/](https://solarianprogrammer.com/2015/01/13/raspberry-pi-raspbian-install-gcc-compile-cpp-14-programs/)  
-[http://hertaville.com/2012/11/18/introduction-to-accessing-the-raspberry-pis-gpio-in-c/](http://hertaville.com/2012/11/18/introduction-to-accessing-the-raspberry-pis-gpio-in-c/)
+[http://hertaville.com/2012/11/18/introduction-to-accessing-the-raspberry-pis-gpio-in-c/](http://hertaville.com/2012/11/18/introduction-to-accessing-the-raspberry-pis-gpio-in-c/)  
+[servoblaster 설치 참고](http://cosmosjs.blog.me/220665844005)
 
 
 ## License   

@@ -1,6 +1,3 @@
-#include <boost/lexical_cast.hpp>
-//#include <boost/make_unique.hpp>
-
 #include "drone_agent.hpp"
 #include "gpio.hpp"
 
@@ -20,24 +17,26 @@ bool drone_agent::init() {
 //////////////////////////////////////////////////////////////////
 void drone_agent::gpio_set() {
 
-	//gpio_2_r_pins_.push_back(std::make_unique<gpio>(new gpio("2"));
+	/*
+	** Before starting this daemon, you need to install servoblast
+	** https://github.com/richardghirst/PiBits/tree/master/ServoBlaster
+	** below gpio setting is default, so you can change if you wnat 
+	*/
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("0"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("1"));
 	gpio_2_r_pins_.push_back(std::make_unique<gpio>("2"));
 	gpio_2_r_pins_.push_back(std::make_unique<gpio>("3"));
 	gpio_2_r_pins_.push_back(std::make_unique<gpio>("4"));
 	gpio_2_r_pins_.push_back(std::make_unique<gpio>("5"));
-	gpio_2_r_pins_.push_back(std::make_unique<gpio>("6"));
-	gpio_2_r_pins_.push_back(std::make_unique<gpio>("7"));
 
-
-	for( int i = 0 ; i < RC_SIGNAL_MAX_PINS ; i++) {
-		gpio_2_r_pins_[i]->export_gpio();
-		gpio_2_r_pins_[i]->setdir_gpio("out");
-	}
 }
 
 // send data to gpio
 //////////////////////////////////////////////////////////////////
 void drone_agent::send_to_gpio(RC_SIGNAL *rcs){
+
+	// codes need to be optimized ***
+	// because PWM is not changed frequently in most cases.
 
 	gpio_2_r_pins_[0]->setval_gpio(rcs->pin_1_);
 	gpio_2_r_pins_[1]->setval_gpio(rcs->pin_2_);
@@ -46,14 +45,6 @@ void drone_agent::send_to_gpio(RC_SIGNAL *rcs){
 	gpio_2_r_pins_[4]->setval_gpio(rcs->pin_5_);
 	gpio_2_r_pins_[5]->setval_gpio(rcs->pin_6_);
 
-/*
-	gpio_2_r_pins_[0]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_1_));
-	gpio_2_r_pins_[1]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_2_));
-	gpio_2_r_pins_[2]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_3_));
-	gpio_2_r_pins_[3]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_4_));
-	gpio_2_r_pins_[4]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_5_));
-	gpio_2_r_pins_[5]->setval_gpio(boost::lexical_cast<std::string>(rcs->pin_6_));
-*/
 }
 
 // overriding function : handle_connect
@@ -61,9 +52,7 @@ void drone_agent::send_to_gpio(RC_SIGNAL *rcs){
 void drone_agent::handle_connect(const boost::system::error_code& error) {
 
 	if(!error) {
-
 		// do something here just after connection is established. 
-
 	}
 
 	connection::handle_connect(error);
