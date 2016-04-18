@@ -1,4 +1,4 @@
 *.o
 *swp
-main_server
+fc_tower
 obj

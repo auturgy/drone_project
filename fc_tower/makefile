@@ -1,4 +1,4 @@
-EXEC 		:= main_server
+EXEC 		:= fc_tower
 
 OBJ_DIR 	:= obj
 
