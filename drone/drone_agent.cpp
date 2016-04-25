@@ -75,7 +75,7 @@ void drone_agent::handle_udp_receive( const boost::system::error_code& error, st
 
 	if( sizeof(RC_SIGNAL) == bytes_transferred ) {
 
-		std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
+		//std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
 
 		// uncomment the below code when building on RPI
 		send_to_gpio(rcs_p);

@@ -25,15 +25,22 @@ network = {
 **OS** : raspbian ([NOOBS v1.8.0](https://www.raspberrypi.org/downloads/noobs/))  
 **Language** : GNU c++14  
 **Boost** : 1.5.5  
-**[ServoBlaster]([ServoBlaster GitHub](https://github.com/richardghirst/PiBits/tree/master/ServoBlaster))** : WiringPi 개발자가 추전한 Software PWM. 결국 사용하지 않음   
-**[pi-blaster](https://github.com/sarfata/pi-blaster)** : PWM output 시그널링의 문제로 servobalster 대신 사용. 헌데, 생각해보면 보낸 출력 값의 잘못으로 전체 PWM이 흔들리것이 아닌가 싶다. but, who knows? 그리고, 설치하는데 반나절을 보냈다. 이유는 설치 설명이 잘못 되어 있다. ㅠ.ㅠ 생고생한 것 생각하면 쩝... 어째든 deb package 만드는 방법으로 해야한다. **주의할 점**이 있는데, 서보셋팅이 default로 16개가 되어있다. GPIO를 괜히 잡아먹기도 하고, 성능이 열화되기 때문에 빌드 전에 **안쓰는 GPIO는 주석 처리** 하도록 하다.  
+**[ServoBlaster]([ServoBlaster GitHub](https://github.com/richardghirst/PiBits/tree/master/ServoBlaster))** : WiringPi 개발자가 추전한 Software PWM.   
+**[pi-blaster](https://github.com/sarfata/pi-blaster)** : servobalster 대안으로 사용 가능하나, 테스트하지 않음. **주의할 점**이 있는데, 서보셋팅이 default로 16개가 되어있다. GPIO를 괜히 잡아먹기도 하고, 성능이 열화되기 때문에 빌드 전에 **안쓰는 GPIO는 주석 처리** 하도록 하다.  
 
+> **CC3D** FC의 경우, RPI의 Software PWM을 잘 인식 못하는 문제가 있는데, LibrePilot로 Firmware 업데이트를 하면 해결할 수 있다. 가능하면, H/W PWM보드를 붙이는 것이 좋아 보인다. [참고사이트](http://robotics.stackexchange.com/questions/8965/cc3d-replacing-rc-emitter-with-an-rpi)  
+  
 
 ```
 $ sudo apt-get update & upgrade 
 $ sudo apt-get git 
 $ sudo apt-get install libboost-all-dev
 $ sudo apt-get install vim (option)
+
+<- install servoblaster ->  
+$ git clone https://github.com/richardghirst/PiBits 
+$ cd PiBits/servoblaster/user 
+$ sudo make install
 
 <- install pi-blaster ->  
 $ sudo apt-get install debhelper dh-autoreconf dh-systemd dpkg-dev init-system-helpers autoconf  
