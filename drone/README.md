@@ -28,7 +28,7 @@ network = {
 **[ServoBlaster]([ServoBlaster GitHub](https://github.com/richardghirst/PiBits/tree/master/ServoBlaster))** : WiringPi 개발자가 추전한 Software PWM.   
 **[pi-blaster](https://github.com/sarfata/pi-blaster)** : servobalster 대안으로 사용 가능하나, 테스트하지 않음. **주의할 점**이 있는데, 서보셋팅이 default로 16개가 되어있다. GPIO를 괜히 잡아먹기도 하고, 성능이 열화되기 때문에 빌드 전에 **안쓰는 GPIO는 주석 처리** 하도록 하다.  
 
-> **CC3D** FC의 경우, RPI의 Software PWM을 잘 인식 못하는 문제가 있는데, LibrePilot로 Firmware 업데이트를 하면 해결할 수 있다. 가능하면, H/W PWM보드를 붙이는 것이 좋아 보인다. [참고사이트](http://robotics.stackexchange.com/questions/8965/cc3d-replacing-rc-emitter-with-an-rpi)  
+> **CC3D** FC의 경우, RPI의 Software PWM을 잘 인식 못하는 문제가 있는데, LibrePilot로 Firmware 업데이트를 하면 해결할 수 있다. 함께, aux 핀을 RPI의 5v pin에 연결해 두면 시그널이 좀 더 stable하게 동작한다. 가능하면, H/W PWM보드 사용을 추천한다. [참고사이트](http://robotics.stackexchange.com/questions/8965/cc3d-replacing-rc-emitter-with-an-rpi)  
   
 
 ```
