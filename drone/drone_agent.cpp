@@ -17,21 +17,29 @@ bool drone_agent::init() {
 //////////////////////////////////////////////////////////////////
 void drone_agent::gpio_set() {
 
-	/* Ch. number   GPIO number   Pin in P1 header
-    **    1               4             P1-7
-    **    2              17             P1-11
-    **    3              18             P1-12
-    **    4              27             P1-13
-    **    5              22             P1-15
-    **    6              23             P1-16		
-    */
+	// servoblaster setting
+	// 2 aux pins should be connected to 5v power for stable signaling 
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("0"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("1"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("2"));
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("3"));
 	gpio_2_r_pins_.push_back(std::make_unique<gpio>("4"));
-	gpio_2_r_pins_.push_back(std::make_unique<gpio>("17"));
-	gpio_2_r_pins_.push_back(std::make_unique<gpio>("18"));
-	gpio_2_r_pins_.push_back(std::make_unique<gpio>("27"));
-	gpio_2_r_pins_.push_back(std::make_unique<gpio>("22"));
-	gpio_2_r_pins_.push_back(std::make_unique<gpio>("23"));
-
+	gpio_2_r_pins_.push_back(std::make_unique<gpio>("5"));
+	
+	// pi-blaster setting 
+	// Ch. number   GPIO number   Pin in P1 header
+    //    1               4             P1-7
+    //    2              17             P1-11
+    //    3              18             P1-12
+    //    4              27             P1-13
+    //    5              22             P1-15
+    //    6              23             P1-16		
+	//gpio_2_r_pins_.push_back(std::make_unique<gpio>("4"));
+	//gpio_2_r_pins_.push_back(std::make_unique<gpio>("17"));
+	//gpio_2_r_pins_.push_back(std::make_unique<gpio>("18"));
+	//gpio_2_r_pins_.push_back(std::make_unique<gpio>("27"));
+	//gpio_2_r_pins_.push_back(std::make_unique<gpio>("22"));
+	//gpio_2_r_pins_.push_back(std::make_unique<gpio>("23"));
 }
 
 // send data to gpio
