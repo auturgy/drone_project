@@ -62,7 +62,11 @@ protected:
 				conn_singleton::get().post_send(packet, packet_p->size_);
 			}
 
-			conn_singleton::get().post_udp_send(line.c_str(), length);
+			std::string data = "msg ";
+			data += line;
+			data += "\n";
+			//conn_singleton::get().post_udp_send(line.c_str(), length);
+			conn_singleton::get().post_udp_send(data.c_str(), data.length());
 
 			post_posix_input();
 			
@@ -81,8 +85,11 @@ protected:
 //////////////////////////////////////////////////////////////////
 int udp_test(std::string& addr) {
 
-	conn_singleton::get().udp_on(addr, DEFAULT_PORT_NUMBER);
+	conn_singleton::get().udp_on(addr, 8080/*DEFAULT_PORT_NUMBER*/);
 
+	//char* data = "100 3";
+	std::string data = "100 3";
+	conn_singleton::get().post_udp_send(data.c_str(), data.length());
 	return 0;
 }
 
@@ -112,7 +119,7 @@ int main(int argc, char* argv[]) {
 	posix_input.init();
 	conn_singleton::get().init();
 
-	tcp_test(addr);
+	//tcp_test(addr);
 	if(udp_test(addr)){	
 		return -1;		
 	}

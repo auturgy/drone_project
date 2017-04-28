@@ -56,7 +56,13 @@ $ sudo dpkg -i ../pi-blaster*.deb
 
 ## 드론 조립 및 개발  
 
-TBD  
+### Factory Reset  
+
+I failed to find how to do factory reset. Instead, ardupilot sites tells 3 ways to erase all parameters stored.  
+
+- SYSID_ SW_ MREV : Set to Zero on any GCS, and reboot  
+- Flash other firmware like ArduRover, reboot, let it sit for 30 secondes to clear the EEPROM, and flash what you want  
+
 
 ## Trouble Shooting  
 

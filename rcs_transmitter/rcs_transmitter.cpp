@@ -84,7 +84,8 @@ bool rcst::run() {
 		return false;
 
 	// [2] for test without server operation 
-	std::string default_drone_addr 	= "192.168.1.100";//"125.152.166.26";
+	std::string default_drone_addr 	= "192.168.1.101";//"125.152.166.26";
+	//std::string default_drone_addr 	= "175.253.177.194";
 	udp_on(default_drone_addr, DEFAULT_PORT_NUMBER);
 
 	// [3]connect to server in order to get drone ip 
@@ -108,6 +109,13 @@ void rcst::process_uart_data(unsigned char* pbuf, int size) {
 
 	if( sizeof(RC_SIGNAL) == size ) {
 
+		rcs_p->pin_1_ = rcs_p->pin_1_/10;
+		rcs_p->pin_2_ = rcs_p->pin_2_/10;
+		rcs_p->pin_3_ = rcs_p->pin_3_/10;
+		rcs_p->pin_4_ = rcs_p->pin_4_/10;
+		rcs_p->pin_5_ = rcs_p->pin_5_/10;
+		rcs_p->pin_6_ = rcs_p->pin_6_/10;
+
 		std::cout << rcs_p->pin_1_ << "\t" << rcs_p->pin_2_ << "\t" << rcs_p->pin_3_ << "\t" << rcs_p->pin_4_ << "\t" << rcs_p->pin_5_ << "\t"  << rcs_p->pin_6_ << std::endl;		
 
 		post_udp_send(reinterpret_cast<const char*>(pbuf),size);
@@ -128,7 +136,7 @@ typedef singleton<rcst> rcst_singleton;
 //////////////////////////////////////////////////////////////////
 const std::string default_server_addr	= "192.168.1.100";
 
-const std::string default_serial_port	= "/dev/cu.usbmodem1411";
+const std::string default_serial_port	= "/dev/cu.usbmodem1421";
 const std::string default_drone_addr 	= "127.0.0.1";
 
 const unsigned short default_drone_id	= 2016;

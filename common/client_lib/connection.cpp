@@ -380,12 +380,18 @@ void connection::post_udp_recv() {
 //////////////////////////////////////////////////////////////////
 void connection::handle_udp_receive( const boost::system::error_code& error, std::size_t bytes_transferred ) {
 
-	std::cout << "[UDP-Recv] " << rcv_udp_buff_->get()->ptr_ << std::endl;
+	rcv_udp_buff_->get()->ptr_[bytes_transferred] = '\0';
+	std::cout << rcv_udp_buff_->get()->ptr_;
+	//std::cout << "[UDP-Recv] " << rcv_udp_buff_->get()->ptr_ << std::endl;
+
+	if(!strncmp(rcv_udp_buff_->get()->ptr_, "ok", 2)) {
+		std::string data = "ok";
+		post_udp_send(data.c_str(), data.length());
+	}
 
 	post_udp_recv();
 
 } // end of handle_udp_receive function 
-
 
 // send data through UDP
 //////////////////////////////////////////////////////////////////
